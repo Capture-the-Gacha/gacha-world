@@ -6,6 +6,17 @@ from datetime import datetime
 def get_current_timestamp():
     return int(datetime.now().timestamp())
 
+def create_db_and_tables(engine):
+    SQLModel.metadata.create_all(engine)
+
+def get_session(engine):
+    with Session(engine) as session:
+        yield session
+
+SessionDep = Annotated[Session, Depends(get_session)]
+
+
+
 class Player(SQLModel, table=True):
     id: int = Field(primary_key=True)
     username: str = Field(index=True)
@@ -42,12 +53,3 @@ class RollPublic(SQLModel):
     gacha_id: int
     paid_price: float
     timestamp: int
-
-def create_db_and_tables(engine):
-    SQLModel.metadata.create_all(engine)
-
-def get_session(engine):
-    with Session(engine) as session:
-        yield session
-
-SessionDep = Annotated[Session, Depends(get_session)]
