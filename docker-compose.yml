@@ -1,15 +1,8 @@
 services:
-  # player:
-  #   hostname: ${PLAYER_HOST}
-  #   build: ./services/Player/src
-  #   env_file: .env
-  #   secrets:
-  #     - cert
-  #     - key
-    
-  player-dbm:
-    hostname: ${PLAYER_DBM_HOST}
-    build: ./services/Player/db
+   
+  player:
+    hostname: ${PLAYER_HOST}
+    build: ./services/Player
     # TODO: Sometimes the db is not ready, it breaks
     depends_on:
       player-db:
