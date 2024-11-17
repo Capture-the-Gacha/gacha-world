@@ -2,8 +2,8 @@ import uvicorn, os
 from fastapi import FastAPI, Depends
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from connection import engine
-from model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic, create_db_and_tables
+from common.connection import engine
+from common.model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic, create_db_and_tables
 from typing import List, Annotated
 from sqlmodel import Session, select
 

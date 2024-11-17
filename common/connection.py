@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
-import os, time
+import os
 
 load_dotenv()
 
@@ -9,6 +9,7 @@ MYSQL_DB = os.getenv('MYSQL_DB')
 PLAYER_DB_HOST = os.getenv('PLAYER_DB_HOST')
 KEY_PATH = os.getenv('KEY_PATH')
 
+# TODO: You need to create users with limited privileges!
 # TODO: Can't figure out how to use HTTPS
 DATABASE_URL = f'mysql+pymysql://root:{MYSQL_ROOT_PASSWORD}@{PLAYER_DB_HOST}:3306/{MYSQL_DB}'
 engine = create_engine(DATABASE_URL)

@@ -2,8 +2,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY *.py .
-COPY requirements.txt .
+COPY common/ common/
+COPY services/Player/*.py .
+COPY services/Player/requirements.txt .
 
 RUN pip install -r requirements.txt
 
