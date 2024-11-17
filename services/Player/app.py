@@ -1,5 +1,5 @@
 import uvicorn, os
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from connection import engine
@@ -43,26 +43,29 @@ async def get_collection(player_id: int, session: SessionDep) -> List[Collection
 
 
 @app.post('/recharge/{player_id}')
-async def recharge(player_id: int, amount: float, session: SessionDep) -> bool:
+async def recharge(player_id: int, amount: float, session: SessionDep) -> dict:
+	if amount <= 0:
+		raise HTTPException(status_code=400, detail='Amount must be positive')
+
 	query = select(Player).where(Player.id == player_id)
 	player = session.exec(query).first()
 
 	if not player:
-		return False
+		raise HTTPException(status_code=404, detail='Player not found')
 	
 	player.balance += amount
 	session.add(Recharge(player_id=player_id, amount=amount))
 	session.commit()
-	return True
+	return { 'message': 'Recharge successful' }
 
 @app.get('/getBalance/{player_id}')
-async def get_balance(player_id: int, session: SessionDep) -> float:
+async def get_balance(player_id: int, session: SessionDep) -> dict:
 	query = select(Player).where(Player.id == player_id)
 	player = session.exec(query).first()
 
 	if not player:
-		return False
-	return player.balance
+		raise HTTPException(status_code=404, detail='Player not found')
+	return { 'balance': player.balance }
 
 @app.get('/getRecharges/{player_id}', response_model=List[RechargePublic])
 async def get_recharges(player_id: int, session: SessionDep) -> List[Recharge]:
@@ -75,15 +78,15 @@ def get_random_gacha_id() -> int:
 	return 1
 
 @app.get('/roll/{player_id}')
-async def roll(player_id: int, session: SessionDep) -> int:
+async def roll(player_id: int, session: SessionDep) -> dict:
 	query = select(Player).where(Player.id == player_id)
 	player = session.exec(query).first()
 
 	if not player:
-		return -2
+		raise HTTPException(status_code=404, detail='Player not found')
 
 	if player.balance < GACHAPON_PRICE:
-		return -1
+		raise HTTPException(status_code=400, detail='Insufficient funds')
 	
 	# Let Gacha service roll for us
 	gacha_id = get_random_gacha_id()
@@ -103,7 +106,7 @@ async def roll(player_id: int, session: SessionDep) -> int:
 		session.add(Collection(player_id=player_id, gacha_id=gacha_id, quantity=1))
 
 	session.commit()
-	return gacha_id
+	return { 'gacha_id': gacha_id }
 
 @app.get('/getRolls/{player_id}', response_model=List[RollPublic])
 async def get_rolls(player_id: int, session: SessionDep) -> List[Roll]:
