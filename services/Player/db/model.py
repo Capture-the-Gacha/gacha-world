@@ -1,7 +1,10 @@
 from typing import Annotated
+from fastapi import Depends
+from sqlmodel import Field, Session, SQLModel
+from datetime import datetime
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+def get_current_timestamp():
+    return int(datetime.now().timestamp())
 
 class Player(SQLModel, table=True):
     id: int = Field(primary_key=True)
@@ -9,21 +12,36 @@ class Player(SQLModel, table=True):
     password: str = Field()
     balance: float = Field()
 
-class Recharge(SQLModel):
+class Recharge(SQLModel, table=True):
     id: int = Field(primary_key=True)
-    player_id: int = Field(foreign_key="Player.id")
+    player_id: int = Field(foreign_key="player.id")
     amount: float = Field()
+    timestamp: int = Field(default_factory=get_current_timestamp)
 
-class Collection(SQLModel):
-    player_id: int = Field(foreign_key="Player.id", primary_key=True)
+class RechargePublic(SQLModel):
+    amount: float
+    timestamp: int
+
+class Collection(SQLModel, table=True):
+    player_id: int = Field(foreign_key="player.id", primary_key=True)
     gacha_id: int = Field(primary_key=True)
     quantity: int = Field()
 
-class Roll(SQLModel):
+class CollectionPublic(SQLModel):
+    gacha_id: int
+    quantity: int
+
+class Roll(SQLModel, table=True):
     id: int = Field(primary_key=True)
-    player_id: int = Field(foreign_key="Player.id")
+    player_id: int = Field(foreign_key="player.id")
     gacha_id: int = Field()
     paid_price: float = Field()
+    timestamp: int = Field(default_factory=get_current_timestamp)
+
+class RollPublic(SQLModel):
+    gacha_id: int
+    paid_price: float
+    timestamp: int
 
 def create_db_and_tables(engine):
     SQLModel.metadata.create_all(engine)

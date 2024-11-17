@@ -14,6 +14,9 @@ services:
     depends_on:
       player-db:
         condition: service_healthy
+    # TODO: Remove exposed port, only for testing purposes
+    ports:
+      - "5000:5000"
     env_file: .env
     secrets:
       - cert
