@@ -1,0 +1,54 @@
+services:
+  # player:
+  #   hostname: ${PLAYER_HOST}
+  #   build: ./services/Player/src
+  #   env_file: .env
+  #   secrets:
+  #     - cert
+  #     - key
+    
+  player-dbm:
+    hostname: ${PLAYER_DBM_HOST}
+    build: ./services/Player/db
+    # TODO: Sometimes the db is not ready, it breaks
+    depends_on:
+      player-db:
+        condition: service_healthy
+    env_file: .env
+    secrets:
+      - cert
+      - key
+
+  player-db:
+    image: mysql:5.7
+    hostname: ${PLAYER_DB_HOST}
+    env_file: .env
+    restart: always
+    # TODO: Remove exposed port, only for testing purposes
+    ports:
+      - "3306:3306"
+    volumes:
+      - my-mysql:/var/lib/mysql
+      - .docker/player-db-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    secrets:
+      - source: cert
+      - source: key
+    healthcheck:
+      test: mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    # TODO: Add --ssl-cert=${CERT_PATH} --ssl-key=${KEY_PATH} --require_secure_transport=ON for HTTPS
+    command: >
+      mysqld
+      --log-error-verbosity=1
+
+secrets:
+  cert:
+    file: ./certs/cert.pem
+  key:
+    file: ./certs/key.pem
+
+volumes:
+  my-mysql:
