@@ -2,9 +2,7 @@ services:
    
   player:
     hostname: ${PLAYER_HOST}
-    build:
-      context: .
-      dockerfile: ./services/Player/Dockerfile
+    build: ./services/Player
     # TODO: Sometimes the db is not ready, it breaks
     depends_on:
       player-db:
