@@ -20,7 +20,15 @@ async def lifespan(_app: FastAPI):
 
 	# TODO: Remove this, testing only
 	with Session(engine) as session:
-		player = Player(username='test', password='test', balance=1000)
+		player = Player(username='samu', password='test', balance=1000)
+		session.add(player)
+		session.commit()
+	with Session(engine) as session:
+		player = Player(username='luca', password='test', balance=1000)
+		session.add(player)
+		session.commit()
+	with Session(engine) as session:
+		player = Player(username='bendo', password='test', balance=1000)
 		session.add(player)
 		session.commit()
 	yield
@@ -112,6 +120,72 @@ async def roll(player_id: int, session: SessionDep) -> dict:
 async def get_rolls(player_id: int, session: SessionDep) -> List[Roll]:
 	query = select(Roll).where(Roll.player_id == player_id)
 	return session.exec(query).all()
+
+
+
+# ===================
+# === AUCTION API ===
+# ===================
+
+@app.post('/placeBid/{player_id}/{bid}')
+async def place_bid(player_id: int, bid: float, session: SessionDep) -> dict:
+	if bid <= 0:
+		raise HTTPException(status_code=400, detail='Bid must be positive')
+
+	query = select(Player).where(Player.id == player_id)
+	player = session.exec(query).first()
+
+	if not player:
+		raise HTTPException(status_code=404, detail='Player not found')
+
+	if player.balance < bid:
+		raise HTTPException(status_code=400, detail='Insufficient funds')
+
+	player.balance -= bid
+	session.commit()
+	return { 'message': 'Bid successful' }
+
+@app.post('/refundBid/{player_id}/{bid}')
+async def refund_bid(player_id: int, bid: float, session: SessionDep) -> dict:
+	if bid <= 0:
+		raise HTTPException(status_code=400, detail='Bid must be positive')
+
+	query = select(Player).where(Player.id == player_id)
+	player = session.exec(query).first()
+
+	if not player:
+		raise HTTPException(status_code=404, detail='Player not found')
+
+	player.balance += bid
+	session.commit()
+	return { 'message': 'Bid refunded' }
+
+@app.post('/sellGacha/{player_id}/{gacha_id}')
+async def sell_gacha(player_id: int, gacha_id: int, session: SessionDep) -> dict:
+	query = select(Collection).where(Collection.player_id == player_id, Collection.gacha_id == gacha_id)
+	entry = session.exec(query).first()
+
+	if not entry or entry.quantity == 0:
+		raise HTTPException(status_code=404, detail='Player does not have the gacha')
+
+	entry.quantity -= 1
+	if entry.quantity == 0:
+		session.delete(entry)
+	session.commit()
+	return { 'message': 'Gacha sold' }
+
+@app.post('/transferGacha/{player_id}/{gacha_id}')
+async def transfer_gacha(player_id: int, gacha_id: int, session: SessionDep) -> dict:
+	query = select(Collection).where(Collection.player_id == player_id, Collection.gacha_id == gacha_id)
+	entry = session.exec(query).first()
+
+	if not entry:
+		session.add(Collection(player_id=player_id, gacha_id=gacha_id, quantity=1))
+	else:
+		entry.quantity += 1
+	
+	session.commit()
+	return { 'message': 'Gacha transferred' }
 
 
 
