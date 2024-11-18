@@ -43,6 +43,13 @@ app = FastAPI(lifespan=lifespan)
 
 
 
+@app.get('/getRoutes')
+async def get_routes() -> dict:
+	system_routes = ['/openapi.json', '/docs', '/docs/oauth2-redirect', '/redoc', '/getRoutes']
+	return { 'routes': [ {'path': route.path, 'method': list(route.methods)[0]} for route in app.routes if route.path not in system_routes ] }
+
+
+
 # TODO: Decorators for authentication?
 @app.get('/getCollection/{player_id}')
 async def get_collection(player_id: int, session: SessionDep) -> List[CollectionPublic]:

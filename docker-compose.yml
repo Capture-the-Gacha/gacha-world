@@ -74,6 +74,25 @@ services:
       mysqld
       --log-error-verbosity=1
 
+  api-gateway:
+    hostname: ${API_GATEWAY_HOST}
+    build: ./services/Gateway
+    depends_on:
+      - player
+      - auction
+    ports:
+      - "5002:5000"
+    env_file: .env
+    secrets:
+      - cert
+      - key
+    healthcheck:
+      test: curl -f https://${PLAYER_HOST}:5000 && curl -f https://${AUCTION_HOST}:5000
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 10s
+
 secrets:
   cert:
     file: ./certs/cert.pem
