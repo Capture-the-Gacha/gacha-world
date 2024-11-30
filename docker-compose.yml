@@ -37,10 +37,12 @@ services:
       retries: 10
       start_period: 30s
       timeout: 10s
-    # TODO: Add --ssl-cert=${CERT_PATH} --ssl-key=${KEY_PATH} --require_secure_transport=ON for HTTPS
     command: >
       mysqld
       --log-error-verbosity=1
+      --ssl-cert=${CERT_PATH}
+      --ssl-key=${KEY_PATH}
+      --require_secure_transport=ON
 
   auction:
     hostname: ${AUCTION_HOST}
@@ -48,6 +50,7 @@ services:
     depends_on:
       auction-db:
         condition: service_healthy
+    # TODO: Remove exposed port, only for testing purposes
     ports:
       - "5001:5000"
     env_file: .env
@@ -81,6 +84,9 @@ services:
     command: >
       mysqld
       --log-error-verbosity=1
+      --ssl-cert=${CERT_PATH}
+      --ssl-key=${KEY_PATH}
+      --require_secure_transport=ON
 
   api-gateway:
     hostname: ${API_GATEWAY_HOST}
@@ -88,6 +94,7 @@ services:
     depends_on:
       - player
       - auction
+    # TODO: Edit exposed port, only for testing purposes
     ports:
       - "5002:5000"
     env_file: .env
