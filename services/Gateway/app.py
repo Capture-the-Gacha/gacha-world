@@ -12,23 +12,7 @@ PLAYER_HOST = os.getenv('PLAYER_HOST')
 AUCTION_HOST = os.getenv('AUCTION_HOST')
 PORT = os.getenv('PORT')
 
-@asynccontextmanager
-async def lifespan(_app: FastAPI):
-    async with httpx.AsyncClient(verify=False) as client:
-        player_routes = (await client.get(f'https://{PLAYER_HOST}:{PORT}/getRoutes')).json()['routes']
-        auction_routes = (await client.get(f'https://{AUCTION_HOST}:{PORT}/getRoutes')).json()['routes']
-    
-    for route in player_routes:
-        app.add_api_route(route['path'], create_proxy_route(route, PLAYER_HOST), methods=[route['method']])
-
-    for route in auction_routes:
-        app.add_api_route(route['path'], create_proxy_route(route, AUCTION_HOST), methods=[route['method']])
-
-    yield
-
-app = FastAPI(lifespan=lifespan)
-
-
+app = FastAPI()
 
 def create_proxy_route(route, host):
     async def proxy(request: Request):
