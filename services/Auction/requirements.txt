@@ -6,3 +6,5 @@ pymysql==1.1.1
 requests==2.32.3
 fastapi_utils==0.8.0
 typing_inspect==0.9.0
+pyjwt==2.10.1
+cryptography==44.0.0

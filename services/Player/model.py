@@ -20,7 +20,6 @@ SessionDep = Annotated[Session, Depends(get_session)]
 class Player(SQLModel, table=True):
     id: int = Field(primary_key=True)
     username: str = Field(index=True)
-    password: str = Field()
     balance: float = Field()
 
 class Recharge(SQLModel, table=True):

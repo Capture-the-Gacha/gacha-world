@@ -1,4 +1,4 @@
-import uvicorn, os, requests as re, urllib3
+import uvicorn, os, requests as re, urllib3, jwt
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -6,18 +6,22 @@ from connection import engine
 from model import Auction, create_db_and_tables, get_current_timestamp
 from typing import List, Annotated
 from sqlmodel import Session, select
+from fastapi.security import OAuth2PasswordBearer
 from fastapi_utils.tasks import repeat_every
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
+JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
 PLAYER_HOST = os.getenv('PLAYER_HOST')
 PORT = os.getenv('PORT')
 EXTEND_EXPIRATION_SECONDS = 30
 
-
+with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
+	JWT_PUBLIC_KEY = f.read().strip()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -31,10 +35,17 @@ def get_session():
 		yield session
 
 SessionDep = Annotated[Session, Depends(get_session)]
+TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 app = FastAPI(lifespan=lifespan)
 
-
+def validate(token: str) -> dict:
+	try:
+		return jwt.decode(token, JWT_PUBLIC_KEY, algorithms=['RS256'])
+	except jwt.ExpiredSignatureError:
+		raise HTTPException(status_code=401, detail='Token expired')
+	except jwt.InvalidTokenError:
+		raise HTTPException(status_code=401, detail='Invalid token')
 
 @repeat_every(seconds=10)
 async def check_auction_expiration() -> None:
@@ -74,10 +85,10 @@ def transfer_gacha(auction_id: int) -> None:
 		session.commit()
 		print(f'[AUCTION] Auction {auction.id} closed with highest_bid = {auction.highest_bid}, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
 
-
-
 @app.post('/sell')
-async def sell_gacha(player_id: int, gacha_id: int, base_price: float, expiration_timestamp: int, session: SessionDep) -> dict:
+async def sell_gacha(gacha_id: int, base_price: float, expiration_timestamp: int, session: SessionDep, token: TokenDep) -> dict:
+	player_id = validate(token).get('sub')
+
 	# Check if base_price is positive
 	if base_price <= 0:
 		raise HTTPException(status_code=400, detail='Base price must be positive')
@@ -102,7 +113,9 @@ async def sell_gacha(player_id: int, gacha_id: int, base_price: float, expiratio
 	return { 'message': 'Auction created', 'auction_id': auction.id }
 
 @app.post('/bid')
-async def bid(player_id: int, auction_id: int, bid: float, session: SessionDep) -> dict:
+async def bid(auction_id: int, bid: float, session: SessionDep, token: TokenDep) -> dict:
+	player_id = validate(token).get('sub')
+
 	# Check if bid is positive
 	if bid <= 0:
 		raise HTTPException(status_code=400, detail='Bid must be positive')
@@ -157,5 +170,4 @@ async def bid(player_id: int, auction_id: int, bid: float, session: SessionDep) 
 
 
 if __name__ == '__main__':
-	import uvicorn
 	uvicorn.run(app, host='0.0.0.0', port=5000, ssl_certfile=CERT_PATH, ssl_keyfile=KEY_PATH)
