@@ -1,4 +1,4 @@
-import uvicorn, os, httpx
+import uvicorn, os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
@@ -9,23 +9,12 @@ KEY_PATH = os.getenv('KEY_PATH')
 
 PLAYER_HOST = os.getenv('PLAYER_HOST')
 AUCTION_HOST = os.getenv('AUCTION_HOST')
+AUTH_HOST = os.getenv('AUTH_HOST')
 PORT = os.getenv('PORT')
 
 app = FastAPI()
 
-def create_proxy_route(route, host):
-    async def proxy(request: Request):
-        async with httpx.AsyncClient() as client:
-            response = await client.request(
-                method=route['method'],
-                url=f"https://{host}:{PORT}{route['path']}",
-                headers=request.headers,
-                data=await request.body()
-            )
-            return response
-
-    return proxy
-
+# TODO!
 
 if __name__ == '__main__':
     import uvicorn
