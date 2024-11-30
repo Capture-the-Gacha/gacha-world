@@ -14,5 +14,7 @@ Create a self-signed certificate:
 
 ```bash
 mkdir certs
-openssl req -x509 -newkey rsa:4096 -nodes -out certs/cert.pem -keyout certs/key.pem -days 365 -subj "/"
+openssl req -x509 -newkey rsa:4096 -nodes -out certs/player-cert.pem -keyout certs/player-key.pem -days 365 -subj "/"
+openssl req -x509 -newkey rsa:4096 -nodes -out certs/auction-cert.pem -keyout certs/auction-key.pem -days 365 -subj "/"
+openssl req -x509 -newkey rsa:4096 -nodes -out certs/gateway-cert.pem -keyout certs/gateway-key.pem -days 365 -subj "/"
 ```

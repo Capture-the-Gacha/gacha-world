@@ -11,8 +11,10 @@ services:
       - "5000:5000"
     env_file: .env
     secrets:
-      - cert
-      - key
+      - source: player-cert
+        target: cert
+      - source: player-key
+        target: key
 
   player-db:
     image: mysql:5.7
@@ -25,8 +27,10 @@ services:
       - ase-player-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     secrets:
-      - source: cert
-      - source: key
+      - source: player-cert
+        target: cert
+      - source: player-key
+        target: key
     healthcheck:
       test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
       interval: 10s
@@ -48,8 +52,10 @@ services:
       - "5001:5000"
     env_file: .env
     secrets:
-      - cert
-      - key
+      - source: auction-cert
+        target: cert
+      - source: auction-key
+        target: key
     
   auction-db:
     image: mysql:5.7
@@ -62,8 +68,10 @@ services:
       - ase-auction-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     secrets:
-      - source: cert
-      - source: key
+      - source: auction-cert
+        target: cert
+      - source: auction-key
+        target: key
     healthcheck:
       test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
       interval: 10s
@@ -84,8 +92,10 @@ services:
       - "5002:5000"
     env_file: .env
     secrets:
-      - cert
-      - key
+      - source: gateway-cert
+        target: cert
+      - source: gateway-key
+        target: key
     healthcheck:
       test: curl -f https://${PLAYER_HOST}:5000 && curl -f https://${AUCTION_HOST}:5000
       interval: 10s
@@ -94,10 +104,18 @@ services:
       timeout: 10s
 
 secrets:
-  cert:
-    file: ./certs/cert.pem
-  key:
-    file: ./certs/key.pem
+  player-cert:
+    file: ./certs/player-cert.pem
+  player-key:
+    file: ./certs/player-key.pem
+  auction-cert:
+    file: ./certs/auction-cert.pem
+  auction-key:
+    file: ./certs/auction-key.pem
+  gateway-cert:
+    file: ./certs/gateway-cert.pem
+  gateway-key:
+    file: ./certs/gateway-key.pem
 
 volumes:
   ase-player-db:
