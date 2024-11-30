@@ -1,7 +1,6 @@
 import uvicorn, os, httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from contextlib import asynccontextmanager
 
 load_dotenv()
 
