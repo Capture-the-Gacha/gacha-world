@@ -67,3 +67,25 @@ docker compose up -d --quiet-pull --build &&
 newman run ../../tests/PlayerTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
 docker compose down
 ```
+
+### Integration Testing (ATTENTION: This will remove all data in the volumes)
+
+Auth service:
+
+```bash
+export $(grep -v '^#' .env | grep -v '^\s*$' | xargs) &&
+docker compose down -v &&
+docker compose up -d --quiet-pull --build &&
+newman run tests/AuthTesting.postman_collection.json -e tests/environment.postman_globals.json --insecure &&
+docker compose down -v
+```
+
+Player service:
+
+```bash
+export $(grep -v '^#' .env | grep -v '^\s*$' | xargs) &&
+docker compose down -v &&
+docker compose up -d --quiet-pull --build &&
+newman run tests/PlayerIntegrationTesting.postman_collection.json -e tests/environment.postman_globals.json --insecure &&
+docker compose down -v
+```
