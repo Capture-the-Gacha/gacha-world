@@ -2,10 +2,10 @@ import uvicorn, os, requests as re, urllib3, jwt
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from connection import engine
 from model import Auction, create_db_and_tables, get_current_timestamp, SessionDep
 from typing import Annotated
-from sqlmodel import Session, select
+from sqlmodel import select, Session
+from connection import engine
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_utils.tasks import repeat_every
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -27,7 +27,7 @@ with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
 	# Only on startup
-	create_db_and_tables(engine)
+	create_db_and_tables()
 	await check_auction_expiration()
 	yield
 

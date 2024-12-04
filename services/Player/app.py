@@ -2,7 +2,6 @@ import uvicorn, os, jwt
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from connection import engine
 from model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic, create_db_and_tables, SessionDep
 from typing import List, Annotated
 from sqlmodel import select
@@ -31,7 +30,7 @@ def validate(token: str) -> dict:
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
 	# Only on startup
-	create_db_and_tables(engine)
+	create_db_and_tables()
 	yield
 
 app = FastAPI(lifespan=lifespan)

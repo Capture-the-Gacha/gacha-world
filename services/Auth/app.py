@@ -7,7 +7,6 @@ from typing import Annotated
 from contextlib import asynccontextmanager
 from model import Player, PlayerCredentials, PatchPlayer, create_db_and_tables, SessionDep
 from sqlmodel import select
-from connection import engine
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -41,7 +40,7 @@ PORT = os.getenv('PORT')
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
 	# Only on startup
-	create_db_and_tables(engine)
+	create_db_and_tables()
 	yield
 
 app = FastAPI(lifespan=lifespan)
