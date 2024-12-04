@@ -203,6 +203,32 @@ async def create_account(username: str, session: SessionDep) -> dict:
 	session.commit()
 	return { 'player_id': player.id }
 
+@app.patch('/editPlayer/{old_username}/{new_username}', status_code=204)
+async def edit_account(old_username: str, new_username: str, session: SessionDep) -> None:
+	# Check if username exists
+	query = select(Player).where(Player.username == old_username)
+	player = session.exec(query).first()
+	if not player:
+		raise HTTPException(status_code=404, detail='Player not found')
+	
+	# Check if new username is unique
+	query = select(Player).where(Player.username == new_username)
+	if session.exec(query).first():
+		raise HTTPException(status_code=400, detail=f'Username "{new_username}" is already taken')
+	
+	player.username = new_username
+	session.commit()
+
+@app.delete('/deletePlayer/{username}', status_code=204)
+async def delete_account(username: str, session: SessionDep) -> None:
+	# Check if username exists
+	query = select(Player).where(Player.username == username)
+	player = session.exec(query).first()
+	if not player:
+		raise HTTPException(status_code=404, detail='Player not found')
+
+	session.delete(player)
+	session.commit()
 
 
 if __name__ == '__main__':

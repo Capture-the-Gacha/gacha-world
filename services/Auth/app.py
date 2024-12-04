@@ -66,6 +66,22 @@ def create_player(username: str) -> str:
     
     return int( response.json()['player_id'] )
 
+def delete_player(username: str):
+    if ENV == 'test':
+        return
+
+    response = re.delete(f'https://{PLAYER_HOST}:{PORT}/deletePlayer/{username}', verify=False)
+    if response.status_code != 204:
+        raise HTTPException(status_code=404, detail='Player not found')
+
+def edit_player(old_username: str, new_username: str):
+    if ENV == 'test':
+        return
+
+    response = re.patch(f'https://{PLAYER_HOST}:{PORT}/editPlayer/{old_username}/{new_username}', verify=False)
+    if response.status_code != 204:
+        raise HTTPException(status_code=404, detail='Player not found')
+
 def validate_username(username: str) -> None:
     if not username or len(username) < 3 or username[0].isdigit() or username[0] == '_' or not all(c.isalnum() or c == '_' for c in username):
         raise HTTPException(status_code=400, detail='Error: Username must be at least 3 characters long, contain only alphanumeric characters or underscores, and must start with a letter')
@@ -150,15 +166,19 @@ async def edit_account(new_player: PatchPlayer, session: SessionDep, token: Toke
         query = select(Player).where(Player.username == new_player.username)
         if session.exec(query).first():
             raise HTTPException(status_code=400, detail=f'Username "{new_player.username}" is already taken')
+        
         # Validate username
         validate_username(new_player.username)
+
         # Update username
+        edit_player(player.username, new_player.username)
         player.username = new_player.username
         res = f'Username updated to "{new_player.username}"'
 
     if new_player.password:
         # Validate password
         validate_password(new_player.password)
+
         # Update password
         player.password = bcrypt.hashpw(new_player.password.encode('utf-8'), bcrypt.gensalt())
         if res:
@@ -177,6 +197,7 @@ async def delete_account(token: TokenDep, session: SessionDep):
     if not player:
         raise HTTPException(status_code=404, detail='Player not found')
     
+    delete_player(player.username)
     session.delete(player)
     session.commit()
     return { 'message': 'Account deleted' }
