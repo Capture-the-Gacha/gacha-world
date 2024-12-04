@@ -4,36 +4,23 @@ Catching gacha for fun
 
 ## Usage
 
-### Environment
+### Set up Environment
 
 Rename `.env.example` to `.env` and change the values as needed.
 
-### HTTPS
+### Create HTTPS certificates & JWT Secrets
 
-Create self-signed certificates:
+Create self-signed certificates + private and public key for JWT:
 
 ```bash
-test -d certs || mkdir certs &&
-cd certs &&
-openssl req -x509 -newkey rsa:4096 -nodes -out player-cert.pem -keyout player-key.pem -days 365 -subj "/" &&
-openssl req -x509 -newkey rsa:4096 -nodes -out auction-cert.pem -keyout auction-key.pem -days 365 -subj "/" &&
-openssl req -x509 -newkey rsa:4096 -nodes -out gateway-cert.pem -keyout gateway-key.pem -days 365 -subj "/" &&
-openssl req -x509 -newkey rsa:4096 -nodes -out gacha-cert.pem -keyout gacha-key.pem -days 365 -subj "/" &&
-openssl req -x509 -newkey rsa:4096 -nodes -out auth-cert.pem -keyout auth-key.pem -days 365 -subj "/" &&
-chmod 0444 ./* &&
-cd ..
+chmod +x init.sh
+./init.sh
 ```
 
-### JWT Secret
-
-Generate a private and public key for JWT:
+### Build the application
 
 ```bash
-test -d secrets || mkdir secrets;
-cd secrets &&
-openssl genpkey -algorithm RSA -out jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048 &&
-openssl rsa -in jwt-private-key.pem -pubout -out jwt-public-key.pub &&
-cd ..
+docker compose up -d --build
 ```
 
 ## Testing
@@ -49,23 +36,19 @@ npm install -g newman
 Auth service:
 
 ```bash
-# Inside Auth service directory
-export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
-docker compose down &&
-docker compose up -d --quiet-pull --build &&
-newman run ../../tests/AuthTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
-docker compose down
+cd services/Auth
+chmod +x test.sh
+./test.sh
+cd -
 ```
 
 Player service:
 
 ```bash
-# Inside Player service directory
-export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
-docker compose down &&
-docker compose up -d --quiet-pull --build &&
-newman run ../../tests/PlayerTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
-docker compose down
+cd services/Player
+chmod +x test.sh
+./test.sh
+cd -
 ```
 
 ### Integration Testing (ATTENTION: This will remove all data in the volumes)
@@ -73,19 +56,17 @@ docker compose down
 Auth service:
 
 ```bash
-export $(grep -v '^#' .env | grep -v '^\s*$' | xargs) &&
-docker compose down -v &&
-docker compose up -d --quiet-pull --build &&
-newman run tests/AuthTesting.postman_collection.json -e tests/environment.postman_globals.json --insecure &&
-docker compose down -v
+cd tests/integration
+chmod +x auth_test.sh
+./auth_test.sh
+cd -
 ```
 
 Player service:
 
 ```bash
-export $(grep -v '^#' .env | grep -v '^\s*$' | xargs) &&
-docker compose down -v &&
-docker compose up -d --quiet-pull --build &&
-newman run tests/PlayerIntegrationTesting.postman_collection.json -e tests/environment.postman_globals.json --insecure &&
-docker compose down -v
+cd tests/integration
+chmod +x player_test.sh
+./player_test.sh
+cd -
 ```
