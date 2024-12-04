@@ -13,7 +13,6 @@ USERNAME = 'root'
 AUTH_DB_HOST = os.getenv('AUTH_DB_HOST')
 DATABASE = 'ctg'
 PLAYERS_COLLECTION = 'players'
-REVOKED_TOKENS_COLLECTION = 'revoked_tokens'
 
 CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
@@ -37,8 +36,6 @@ client = MongoClient(uri)
 db = client[DATABASE]
 
 players = db[PLAYERS_COLLECTION]
-revoked_tokens = db[REVOKED_TOKENS_COLLECTION]
-revoked_tokens.create_index('exp', expireAfterSeconds=0)
 
 
 
@@ -102,9 +99,8 @@ async def login(credentials: Credentials):
 async def logout(token=Depends(oauth2_scheme)):
     if not token:
         raise HTTPException(status_code=401, detail='Token missing')
-    payload = validate(token)
+    validate(token)
     
-    revoked_tokens.insert_one({ 'jti': payload['jti'], 'exp': payload['exp'] })
     return { 'message': 'Logged out' }
 
 if __name__ == '__main__':
