@@ -3,13 +3,14 @@ from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from connection import engine
-from model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic, create_db_and_tables
+from model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic, create_db_and_tables, SessionDep
 from typing import List, Annotated
-from sqlmodel import Session, select
+from sqlmodel import select
 from fastapi.security import OAuth2PasswordBearer
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
@@ -32,13 +33,6 @@ async def lifespan(_app: FastAPI):
 	# Only on startup
 	create_db_and_tables(engine)
 	yield
-
-def get_session():
-	with Session(engine) as session:
-		yield session
-
-SessionDep = Annotated[Session, Depends(get_session)]
-TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 app = FastAPI(lifespan=lifespan)
 

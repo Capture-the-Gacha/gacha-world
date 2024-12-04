@@ -5,12 +5,13 @@ from dotenv import load_dotenv
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from typing import Annotated
 from contextlib import asynccontextmanager
-from model import Player, PlayerCredentials, PatchPlayer, create_db_and_tables
-from sqlmodel import Session, select
+from model import Player, PlayerCredentials, PatchPlayer, create_db_and_tables, SessionDep
+from sqlmodel import select
 from connection import engine
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 # Set to 'test' for unit testing
 ENV = os.getenv('ENV', 'prod')
@@ -42,13 +43,6 @@ async def lifespan(_app: FastAPI):
 	# Only on startup
 	create_db_and_tables(engine)
 	yield
-
-def get_session():
-	with Session(engine) as session:
-		yield session
-
-SessionDep = Annotated[Session, Depends(get_session)]
-TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 app = FastAPI(lifespan=lifespan)
 

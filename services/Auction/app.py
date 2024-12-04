@@ -3,8 +3,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from connection import engine
-from model import Auction, create_db_and_tables, get_current_timestamp
-from typing import List, Annotated
+from model import Auction, create_db_and_tables, get_current_timestamp, SessionDep
+from typing import Annotated
 from sqlmodel import Session, select
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_utils.tasks import repeat_every
@@ -12,6 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
@@ -29,13 +30,6 @@ async def lifespan(_app: FastAPI):
 	create_db_and_tables(engine)
 	await check_auction_expiration()
 	yield
-
-def get_session():
-	with Session(engine) as session:
-		yield session
-
-SessionDep = Annotated[Session, Depends(get_session)]
-TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 app = FastAPI(lifespan=lifespan)
 
@@ -56,34 +50,33 @@ async def check_auction_expiration() -> None:
 	for auction_id in expired_auctions_ids:
 		close_auction(auction_id)
 
-def close_auction(auction_id: int) -> None:
-	with Session(engine) as session:
-		auction = session.get(Auction, auction_id)
-		if auction is None or auction.is_closed:
-			return
+def close_auction(auction_id: int, session: SessionDep) -> None:
+	auction = session.get(Auction, auction_id)
+	if auction is None or auction.is_closed:
+		return
 
-		# If no one bid, return the gacha
-		if auction.last_bidder_id is None:
-			response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False)
-			if not response.ok:
-				return
-			auction.is_closed = True
-			session.commit()
-			print(f'[AUCTION] Auction {auction.id} expired, gacha returned to creator')
-			return
-
-		# ! Consistency problems, what if one fails
-		# If someone bid transfer the bid amount to the creator
-		response = re.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False)
-		if not response.ok:
-			return
-		# And transfer the gacha
-		response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False)
+	# If no one bid, return the gacha
+	if auction.last_bidder_id is None:
+		response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False)
 		if not response.ok:
 			return
 		auction.is_closed = True
 		session.commit()
-		print(f'[AUCTION] Auction {auction.id} closed with highest_bid = {auction.highest_bid}, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
+		print(f'[AUCTION] Auction {auction.id} expired, gacha returned to creator')
+		return
+
+	# ! Consistency problems, what if one fails
+	# If someone bid transfer the bid amount to the creator
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False)
+	if not response.ok:
+		return
+	# And transfer the gacha
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False)
+	if not response.ok:
+		return
+	auction.is_closed = True
+	session.commit()
+	print(f'[AUCTION] Auction {auction.id} closed with highest_bid = {auction.highest_bid}, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
 
 @app.post('/sell')
 async def sell_gacha(gacha_id: int, base_price: float, expiration_timestamp: int, session: SessionDep, token: TokenDep) -> dict:
