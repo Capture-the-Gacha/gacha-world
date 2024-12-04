@@ -2,7 +2,7 @@ import uvicorn, os, requests as re, urllib3, jwt
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from model import Auction, create_db_and_tables, get_current_timestamp, SessionDep
+from model import Auction, AuctionPublic, create_db_and_tables, get_current_timestamp, SessionDep
 from typing import Annotated
 from sqlmodel import select, Session
 from connection import engine
@@ -79,8 +79,12 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 	print(f'[AUCTION] Auction {auction.id} closed with highest_bid = {auction.highest_bid}, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
 
 @app.post('/sell')
-async def sell_gacha(gacha_id: int, base_price: float, expiration_timestamp: int, session: SessionDep, token: TokenDep) -> dict:
+async def sell_gacha(auction: AuctionPublic, session: SessionDep, token: TokenDep) -> dict:
 	player_id = validate(token).get('sub')
+
+	base_price = auction.base_price
+	expiration_timestamp = auction.expiration_timestamp
+	gacha_id = auction.gacha_id
 
 	# Check if base_price is positive
 	if base_price <= 0:
@@ -97,7 +101,7 @@ async def sell_gacha(gacha_id: int, base_price: float, expiration_timestamp: int
 	# Ask Player service to remove the gacha from the player's collection
 	# In one API call we check if the player exists and if the player has the gacha
 	# If the response is successful we create the auction
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{player_id}/{gacha_id}', verify=False)
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{gacha_id}', verify=False)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Player not found or does not have the gacha')
@@ -105,7 +109,7 @@ async def sell_gacha(gacha_id: int, base_price: float, expiration_timestamp: int
 	session.commit()
 	return { 'message': 'Auction created', 'auction_id': auction.id }
 
-@app.post('/bid')
+@app.post('/bid/{auction_id}/{bid}')
 async def bid(auction_id: int, bid: float, session: SessionDep, token: TokenDep) -> dict:
 	player_id = validate(token).get('sub')
 
@@ -152,7 +156,7 @@ async def bid(auction_id: int, bid: float, session: SessionDep, token: TokenDep)
 		auction.expiration_timestamp = get_current_timestamp() + EXTEND_EXPIRATION_SECONDS
 	
 	# Ask Player service to remove the bid amount from the player's balance
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{bid}', verify=False)
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{bid}', verify=False)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=400, detail='Player not found or does not have enough balance')

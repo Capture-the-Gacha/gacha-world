@@ -27,3 +27,8 @@ class Auction(SQLModel, table=True):
     highest_bid: float = Field(default=0)
     expiration_timestamp: int = Field()
     is_closed: bool = Field(default=False)
+
+class AuctionPublic(SQLModel):
+    gacha_id: int
+    base_price: float
+    expiration_timestamp: int

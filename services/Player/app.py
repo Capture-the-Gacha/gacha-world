@@ -42,7 +42,7 @@ async def get_collection(session: SessionDep, token: TokenDep) -> List[Collectio
 	return session.exec(query).all()
 
 
-@app.post('/recharge/{player_id}')
+@app.post('/recharge/{player_id}/{amount}')
 async def recharge(player_id: int, amount: float, session: SessionDep) -> dict:
 	if amount <= 0:
 		raise HTTPException(status_code=400, detail='Amount must be positive')
