@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Init repository
-        run: chmod +x init.sh && ./init.sh
+        run: ./init.sh
 
       - name: Rename .env.example
         run: mv .env.example .env
@@ -35,12 +35,10 @@ jobs:
 
       - name: Run Auth tests
         run: cd tests/integration && \
-              chmod +x auth_test.sh && \
               ./auth_test.sh && \
               cd -
 
       - name: Run Player tests
         run: cd tests/integration && \
-              chmod +x player_test.sh && \
               ./player_test.sh && \
               cd -

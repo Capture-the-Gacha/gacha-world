@@ -13,7 +13,6 @@ Rename `.env.example` to `.env` and change the values as needed.
 Create self-signed certificates + private and public key for JWT:
 
 ```bash
-chmod +x init.sh
 ./init.sh
 ```
 
@@ -37,7 +36,6 @@ Auth service:
 
 ```bash
 cd services/Auth
-chmod +x test.sh
 ./test.sh
 cd -
 ```
@@ -46,7 +44,6 @@ Player service:
 
 ```bash
 cd services/Player
-chmod +x test.sh
 ./test.sh
 cd -
 ```
@@ -57,7 +54,6 @@ Auth service:
 
 ```bash
 cd tests/integration
-chmod +x auth_test.sh
 ./auth_test.sh
 cd -
 ```
@@ -66,7 +62,6 @@ Player service:
 
 ```bash
 cd tests/integration
-chmod +x player_test.sh
 ./player_test.sh
 cd -
 ```
