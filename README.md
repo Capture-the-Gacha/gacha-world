@@ -36,3 +36,24 @@ openssl rsa -in jwt-private-key.pem -pubout -out jwt-public-key.pub &&
 echo "redacted" > mongo-root-password.txt &&
 cd ..
 ```
+
+## Testing
+
+### Unit Tests
+
+Prepare the environment:
+
+```bash
+npm install -g newman
+```
+
+Auth service:
+
+```bash
+# Inside Auth service directory
+docker compose down &&
+export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
+docker compose up -d --quiet-pull &&
+newman run ../../tests/AuthTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
+docker compose down 1>/dev/null 2>&1
+```
