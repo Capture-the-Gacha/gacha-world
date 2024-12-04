@@ -41,4 +41,4 @@ jobs:
 
       # We don't have any tests for Auction service
       - name: Docker compose
-        run: docker-compose up -d --build
+        run: docker compose up -d --build
