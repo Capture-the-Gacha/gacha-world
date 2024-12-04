@@ -75,6 +75,10 @@ async def register(request: Request):
 async def login(request: Request):
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/login')
 
+@app.post('/logout')
+async def logout(request: Request):
+    return await forward(request, f'https://{AUTH_HOST}:{PORT}/logout')
+
 @app.patch('/editAccount')
 async def editAccount(request: Request):
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/editAccount')
