@@ -35,6 +35,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
       
       - name: Run tests
-        run: cd services/Player && \
-              ./test.sh && \
-              cd -
+        run: |
+          cd services/Player
+          ./test.sh
