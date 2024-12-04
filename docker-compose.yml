@@ -18,7 +18,7 @@ services:
       - jwt-public-key
 
   player-db:
-    image: mysql:5.7
+    image: mysql:8
     hostname: ${PLAYER_DB_HOST}
     env_file: .env
     restart: always
@@ -47,6 +47,7 @@ services:
 
   auction:
     hostname: ${AUCTION_HOST}
+    platform: linux/amd64
     build: ./services/Auction
     depends_on:
       auction-db:
@@ -63,7 +64,7 @@ services:
       - jwt-public-key
     
   auction-db:
-    image: mysql:5.7
+    image: mysql:8
     hostname: ${AUCTION_DB_HOST}
     env_file: .env
     restart: always
@@ -132,7 +133,7 @@ services:
       - jwt-private-key
 
   auth-db:
-    image: mysql:5.7
+    image: mysql:8
     hostname: ${AUTH_DB_HOST}
     env_file: .env
     restart: always
@@ -159,6 +160,51 @@ services:
       --ssl-key=${KEY_PATH}
       --require_secure_transport=ON
 
+  gacha:
+    hostname: ${GACHA_HOST}
+    build: ./services/Gacha
+    depends_on:
+      gacha-db:
+        condition: service_healthy
+    # TODO: Remove exposed port, only for testing purposes
+    ports:
+      - "5004:5000"
+    env_file: .env
+    secrets:
+      - source: gacha-cert
+        target: cert
+      - source: gacha-key
+        target: key
+      - jwt-public-key
+
+  gacha-db:
+    image: mysql:8
+    hostname: ${GACHA_DB_HOST}
+    env_file: .env
+    restart: always
+    ports:
+      - "3306"
+    volumes:
+      - ase-gacha-db:/var/lib/mysql
+      - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    secrets:
+      - source: auction-cert
+        target: cert
+      - source: auction-key
+        target: key
+    healthcheck:
+      test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 10s
+    command: >
+      mysqld
+      --log-error-verbosity=1
+      --ssl-cert=${CERT_PATH}
+      --ssl-key=${KEY_PATH}
+      --require_secure_transport=ON
+
 
 secrets:
   player-cert:
@@ -169,6 +215,10 @@ secrets:
     file: ./certs/auction-cert.pem
   auction-key:
     file: ./certs/auction-key.pem
+  gacha-cert:
+    file: ./certs/gacha-cert.pem
+  gacha-key:
+    file: ./certs/gacha-key.pem
   gateway-cert:
     file: ./certs/gateway-cert.pem
   gateway-key:
@@ -186,4 +236,5 @@ secrets:
 volumes:
   ase-player-db:
   ase-auction-db:
+  ase-gacha-db:
   ase-auth-db:

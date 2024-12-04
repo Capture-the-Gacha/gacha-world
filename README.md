@@ -18,6 +18,7 @@ cd certs &&
 openssl req -x509 -newkey rsa:4096 -nodes -out player-cert.pem -keyout player-key.pem -days 365 -subj "/" &&
 openssl req -x509 -newkey rsa:4096 -nodes -out auction-cert.pem -keyout auction-key.pem -days 365 -subj "/" &&
 openssl req -x509 -newkey rsa:4096 -nodes -out gateway-cert.pem -keyout gateway-key.pem -days 365 -subj "/" &&
+openssl req -x509 -newkey rsa:4096 -nodes -out gacha-cert.pem -keyout gacha-key.pem -days 365 -subj "/" &&
 openssl req -x509 -newkey rsa:4096 -nodes -out auth-cert.pem -keyout auth-key.pem -days 365 -subj "/" &&
 chmod 0444 ./* &&
 cd ..
