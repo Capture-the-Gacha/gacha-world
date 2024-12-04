@@ -53,5 +53,5 @@ export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
 docker compose down &&
 docker compose up -d --quiet-pull &&
 newman run ../../tests/AuthTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
-docker compose down 1>/dev/null 2>&1
+docker compose down
 ```
