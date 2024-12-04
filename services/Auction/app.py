@@ -54,9 +54,9 @@ async def check_auction_expiration() -> None:
 		expired_auctions_ids = session.exec(select(Auction.id).where(Auction.is_closed == False, Auction.expiration_timestamp < current_timestamp)).all()
 	
 	for auction_id in expired_auctions_ids:
-		transfer_gacha(auction_id)
+		close_auction(auction_id)
 
-def transfer_gacha(auction_id: int) -> None:
+def close_auction(auction_id: int) -> None:
 	with Session(engine) as session:
 		auction = session.get(Auction, auction_id)
 		if auction is None or auction.is_closed:
@@ -162,7 +162,7 @@ async def bid(auction_id: int, bid: float, session: SessionDep, token: TokenDep)
 	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{bid}', verify=False)
 	if not response.ok:
 		session.rollback()
-		raise HTTPException(status_code=404, detail='Player not found or does not have enough balance')
+		raise HTTPException(status_code=400, detail='Player not found or does not have enough balance')
 
 	session.commit()
 	return { 'message': 'Bid successful' }
