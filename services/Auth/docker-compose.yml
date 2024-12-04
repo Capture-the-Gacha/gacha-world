@@ -4,7 +4,8 @@ services:
     hostname: ${AUTH_HOST}
     build: .
     depends_on:
-      - auth-db
+      auth-db:
+        condition: service_healthy
     ports:
       - "5000:5000"
     env_file: ../../.env
@@ -17,26 +18,33 @@ services:
         target: key
       - jwt-public-key
       - jwt-private-key
-      - mongo-root-password
 
   auth-db:
+    image: mysql:5.7
     hostname: ${AUTH_DB_HOST}
-    image: mongo:latest
+    env_file: ../../.env
+    restart: always
     ports:
-      - '27017'
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo-root-password
-      MONGO_INITDB_DATABASE: admin
-    command: mongod --auth --quiet --logpath /dev/null
-      --tlsAllowConnectionsWithoutCertificates
-      --tlsMode preferTLS
-      --tlsCertificateKeyFile /run/secrets/cert
-      --tlsCAFile /run/secrets/cert
+      - "3306"
+    volumes:
+      - ../../.docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     secrets:
-      - source: auth-mongo-fullchain
+      - source: auth-cert
         target: cert
-      - mongo-root-password
+      - source: auth-key
+        target: key
+    healthcheck:
+      test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 10s
+    command: >
+      mysqld
+      --log-error-verbosity=1
+      --ssl-cert=${CERT_PATH}
+      --ssl-key=${KEY_PATH}
+      --require_secure_transport=ON
 
 
 secrets:
@@ -44,10 +52,6 @@ secrets:
     file: ../../certs/auth-cert.pem
   auth-key:
     file: ../../certs/auth-key.pem
-  auth-mongo-fullchain:
-    file: ../../certs/auth-mongo-fullchain.pem
-  mongo-root-password:
-    file: ../../secrets/mongo-root-password.txt
   jwt-public-key:
     file: ../../secrets/jwt-public-key.pub
   jwt-private-key:

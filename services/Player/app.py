@@ -181,7 +181,7 @@ async def sell_gacha(gacha_id: int, session: SessionDep, token: TokenDep) -> dic
 	return { 'message': 'Gacha sold' }
 
 @app.post('/transferGacha/{player_id}/{gacha_id}')
-async def transfer_gacha(player_id: int, gacha_id: int, session: SessionDep, token: TokenDep) -> dict:
+async def transfer_gacha(player_id: int, gacha_id: int, session: SessionDep) -> dict:
 	query = select(Collection).where(Collection.player_id == player_id, Collection.gacha_id == gacha_id)
 	entry = session.exec(query).first()
 
@@ -209,26 +209,6 @@ async def create_account(username: str, session: SessionDep) -> dict:
 	session.add(player)
 	session.commit()
 	return { 'player_id': player.id }
-
-# @app.post('/login')
-# async def login(username: str, password: str) -> bool:
-# 	pass
-
-# @app.post('/register')
-# async def register(username: str, password: str) -> int:
-# 	pass
-
-# @app.post('/deleteAccount')
-# async def delete_account(username: str, password: str) -> bool:
-# 	pass
-
-# @app.patch('/editAccount')
-# async def edit_account(player_id: int, player: dict) -> bool:
-# 	pass
-
-# @app.post('/logout')
-# async def logout(player_id: int) -> bool:
-# 	pass
 
 
 
