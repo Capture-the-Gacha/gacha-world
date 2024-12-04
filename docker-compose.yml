@@ -6,9 +6,6 @@ services:
     depends_on:
       player-db:
         condition: service_healthy
-    # TODO: Remove exposed port, only for testing purposes
-    ports:
-      - "5000:5000"
     env_file: .env
     secrets:
       - source: player-cert
@@ -22,8 +19,6 @@ services:
     hostname: ${PLAYER_DB_HOST}
     env_file: .env
     restart: always
-    ports:
-      - "3306"
     volumes:
       - ase-player-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -52,9 +47,6 @@ services:
     depends_on:
       auction-db:
         condition: service_healthy
-    # TODO: Remove exposed port, only for testing purposes
-    ports:
-      - "5001:5000"
     env_file: .env
     secrets:
       - source: auction-cert
@@ -68,8 +60,6 @@ services:
     hostname: ${AUCTION_DB_HOST}
     env_file: .env
     restart: always
-    ports:
-      - "3306"
     volumes:
       - ase-auction-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -98,9 +88,8 @@ services:
       - player
       - auction
       - auth
-    # TODO: Edit exposed port, only for testing purposes
     ports:
-      - "5002:5000"
+      - '5000:5000'
     env_file: .env
     secrets:
       - source: gateway-cert
@@ -120,9 +109,6 @@ services:
     depends_on:
       auth-db:
         condition: service_healthy
-    # TODO: Remove exposed port, only for testing purposes
-    ports:
-      - "5003:5000"
     env_file: .env
     secrets:
       - source: auth-cert
@@ -137,8 +123,6 @@ services:
     hostname: ${AUTH_DB_HOST}
     env_file: .env
     restart: always
-    ports:
-      - "3306"
     volumes:
       - ase-auth-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -166,9 +150,6 @@ services:
     depends_on:
       gacha-db:
         condition: service_healthy
-    # TODO: Remove exposed port, only for testing purposes
-    ports:
-      - "5004:5000"
     env_file: .env
     secrets:
       - source: gacha-cert
@@ -182,8 +163,6 @@ services:
     hostname: ${GACHA_DB_HOST}
     env_file: .env
     restart: always
-    ports:
-      - "3306"
     volumes:
       - ase-gacha-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
