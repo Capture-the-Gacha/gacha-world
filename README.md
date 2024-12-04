@@ -52,7 +52,18 @@ Auth service:
 # Inside Auth service directory
 export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
 docker compose down &&
-docker compose up -d --quiet-pull &&
+docker compose up -d --quiet-pull --build &&
 newman run ../../tests/AuthTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
+docker compose down
+```
+
+Player service:
+
+```bash
+# Inside Player service directory
+export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs) &&
+docker compose down &&
+docker compose up -d --quiet-pull --build &&
+newman run ../../tests/PlayerTesting.postman_collection.json -e ../../tests/environment.postman_globals.json --insecure &&
 docker compose down
 ```

@@ -1,10 +1,10 @@
 services:
 
-  auth:
-    hostname: ${AUTH_HOST}
+  player:
+    hostname: ${PLAYER_HOST}
     build: .
     depends_on:
-      auth-db:
+      player-db:
         condition: service_healthy
     ports:
       - "5000:5000"
@@ -12,24 +12,23 @@ services:
     environment:
       - ENV=test
     secrets:
-      - source: auth-cert
+      - source: player-cert
         target: cert
-      - source: auth-key
+      - source: player-key
         target: key
       - jwt-public-key
-      - jwt-private-key
 
-  auth-db:
+  player-db:
     image: mysql:5.7
-    hostname: ${AUTH_DB_HOST}
+    hostname: ${PLAYER_DB_HOST}
     env_file: ../../.env
     restart: always
     volumes:
       - ../../.docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     secrets:
-      - source: auth-cert
+      - source: player-cert
         target: cert
-      - source: auth-key
+      - source: player-key
         target: key
     healthcheck:
       test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
@@ -46,11 +45,9 @@ services:
 
 
 secrets:
-  auth-cert:
-    file: ../../certs/auth-cert.pem
-  auth-key:
-    file: ../../certs/auth-key.pem
+  player-cert:
+    file: ../../certs/player-cert.pem
+  player-key:
+    file: ../../certs/player-key.pem
   jwt-public-key:
     file: ../../secrets/jwt-public-key.pub
-  jwt-private-key:
-    file: ../../secrets/jwt-private-key.pem

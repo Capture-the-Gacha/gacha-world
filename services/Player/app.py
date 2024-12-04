@@ -7,8 +7,15 @@ from typing import List, Annotated
 from sqlmodel import select
 from fastapi.security import OAuth2PasswordBearer
 
+# Set to 'test' for unit testing
+ENV = os.getenv('ENV', 'prod')
+MOCK_ID = 1
+
 load_dotenv()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+if ENV == 'prod':
+	oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+else:
+	oauth2_scheme = lambda: 'mock_token'
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 CERT_PATH = os.getenv('CERT_PATH')
@@ -37,7 +44,11 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get('/getCollection')
 async def get_collection(session: SessionDep, token: TokenDep) -> List[CollectionPublic]:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+
 	query = select(Collection).where(Collection.player_id == player_id)
 	return session.exec(query).all()
 
@@ -60,7 +71,11 @@ async def recharge(player_id: int, amount: float, session: SessionDep) -> dict:
 
 @app.get('/getBalance')
 async def get_balance(session: SessionDep, token: TokenDep) -> dict:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+	
 	query = select(Player).where(Player.id == player_id)
 	player = session.exec(query).first()
 
@@ -70,7 +85,11 @@ async def get_balance(session: SessionDep, token: TokenDep) -> dict:
 
 @app.get('/getRecharges', response_model=List[RechargePublic])
 async def get_recharges(session: SessionDep, token: TokenDep) -> List[Recharge]:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+
 	query = select(Recharge).where(Recharge.player_id == player_id)
 	return session.exec(query).all()
 
@@ -81,7 +100,11 @@ def get_random_gacha_id() -> int:
 
 @app.get('/roll')
 async def roll(session: SessionDep, token: TokenDep) -> dict:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+
 	query = select(Player).where(Player.id == player_id)
 	player = session.exec(query).first()
 
@@ -113,7 +136,11 @@ async def roll(session: SessionDep, token: TokenDep) -> dict:
 
 @app.get('/getRolls', response_model=List[RollPublic])
 async def get_rolls(session: SessionDep, token: TokenDep) -> List[Roll]:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+
 	query = select(Roll).where(Roll.player_id == player_id)
 	return session.exec(query).all()
 
@@ -125,7 +152,10 @@ async def get_rolls(session: SessionDep, token: TokenDep) -> List[Roll]:
 
 @app.post('/placeBid/{bid}')
 async def place_bid(bid: float, session: SessionDep, token: TokenDep) -> dict:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
 
 	if bid <= 0:
 		raise HTTPException(status_code=400, detail='Bid must be positive')
@@ -160,7 +190,11 @@ async def refund_bid(player_id: int, bid: float, session: SessionDep) -> dict:
 
 @app.post('/sellGacha/{gacha_id}')
 async def sell_gacha(gacha_id: int, session: SessionDep, token: TokenDep) -> dict:
-	player_id = validate(token).get('sub')
+	if ENV == 'prod':
+		player_id = validate(token).get('sub')
+	else:
+		player_id = MOCK_ID
+
 	query = select(Collection).where(Collection.player_id == player_id, Collection.gacha_id == gacha_id)
 	entry = session.exec(query).first()
 

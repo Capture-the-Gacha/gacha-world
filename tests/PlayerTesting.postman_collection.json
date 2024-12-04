@@ -1,0 +1,346 @@
+{
+	"info": {
+		"_postman_id": "9b05eba7-0c38-4d85-82db-cb07df604ed5",
+		"name": "PlayerTesting",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39700120",
+		"_collection_link": "https://capture-the-gacha.postman.co/workspace/GachaWorld~a421580f-4860-4d37-aadd-e6e959d8a5f1/collection/39700120-9b05eba7-0c38-4d85-82db-cb07df604ed5?action=share&source=collection_link&creator=39700120"
+	},
+	"item": [
+		{
+			"name": "create_player",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Player created (201)\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    if (pm.response.json().hasOwnProperty('player_id')) {",
+							"        pm.environment.set(\"player_id\", pm.response.json().player_id);",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/newPlayer/{{username}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"newPlayer",
+						"{{username}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "roll_without_money",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Insufficient funds (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/roll",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"roll"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_collection_empty",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Empty collection (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.response.json()).to.eql([]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getCollection",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getCollection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "recharge",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Recharged (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/recharge/{{player_id}}/999999",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"recharge",
+						"{{player_id}}",
+						"999999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_balance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Balance is correct (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.response.json().balance).to.equal(999999);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getBalance",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getBalance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "roll",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Rolled (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/roll",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"roll"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_collection_1gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Collection contains 1 gacha (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(1);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getCollection",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getCollection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "transfer_gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Gifted gacha (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/transferGacha/{{player_id}}/1234",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"transferGacha",
+						"{{player_id}}",
+						"1234"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_rolls",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Current rolls are only 1 (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(1);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getRolls",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getRolls"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_collection_2gacha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains 2 gachas\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(2);",
+							"});",
+							"",
+							"pm.test(\"Response contains the gacha we gifted\", function () {",
+							"    pm.expect(pm.response.json()).to.deep.include({ \"gacha_id\": 1234, \"quantity\": 1 });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getCollection",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getCollection"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
