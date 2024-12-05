@@ -42,3 +42,5 @@ jobs:
         run: |
           cd tests/integration
           ./player_test.sh
+
+      # Auction tests would involve the whole system, with plenty of requests, so we said to use only the Unit tests for now

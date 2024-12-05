@@ -7,8 +7,8 @@ on:
     paths:
       - '.github/workflows/auction.yml'
       - 'services/Auction/**'
-      # - 'tests/AuctionTesting.postman_collection.json'
-      # - 'tests/environment.postman_globals.json'
+      - 'tests/AuctionTesting.postman_collection.json'
+      - 'tests/environment.postman_globals.json'
       - 'docker-compose.yml'
 
 jobs:
@@ -24,21 +24,17 @@ jobs:
       - name: Rename .env.example
         run: mv .env.example .env
         
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '18'
-      # - name: Install Newman
-      #   run: npm install -g newman
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Newman
+        run: npm install -g newman
         
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
       
-      # - name: Run tests
-      #   run: |
-      #     cd services/Player
-      #     ./test.sh
-
-      # We don't have any tests for Auction service
-      - name: Docker compose
-        run: docker compose up -d --build
+      - name: Run tests
+        run: |
+          cd services/Auction
+          ./test.sh

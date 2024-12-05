@@ -1,0 +1,53 @@
+services:
+
+  auction:
+    hostname: ${AUCTION_HOST}
+    build: .
+    depends_on:
+      auction-db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    env_file: ../../.env
+    environment:
+      - ENV=test
+    secrets:
+      - source: auction-cert
+        target: cert
+      - source: auction-key
+        target: key
+      - jwt-public-key
+
+  auction-db:
+    image: mysql:5.7
+    hostname: ${AUCTION_DB_HOST}
+    env_file: ../../.env
+    restart: always
+    volumes:
+      - ../../.docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    secrets:
+      - source: auction-cert
+        target: cert
+      - source: auction-key
+        target: key
+    healthcheck:
+      test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 10s
+    command: >
+      mysqld
+      --log-error-verbosity=1
+      --ssl-cert=${CERT_PATH}
+      --ssl-key=${KEY_PATH}
+      --require_secure_transport=ON
+
+
+secrets:
+  auction-cert:
+    file: ../../certs/auction-cert.pem
+  auction-key:
+    file: ../../certs/auction-key.pem
+  jwt-public-key:
+    file: ../../secrets/jwt-public-key.pub

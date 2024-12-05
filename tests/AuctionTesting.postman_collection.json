@@ -1,0 +1,263 @@
+{
+	"info": {
+		"_postman_id": "95e4b37c-99b2-422d-ab97-32b8672bf104",
+		"name": "AuctionTesting",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39700120",
+		"_collection_link": "https://capture-the-gacha.postman.co/workspace/GachaWorld~a421580f-4860-4d37-aadd-e6e959d8a5f1/collection/39700120-95e4b37c-99b2-422d-ab97-32b8672bf104?action=share&source=collection_link&creator=39700120"
+	},
+	"item": [
+		{
+			"name": "sell_base_price",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Negative base price (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gacha_id\": 1,\n    \"base_price\": 0,\n    \"expiration_timestamp\": 1234\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/sell",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"sell"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sell_timestamp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Expiration timestamp is in the past (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gacha_id\": 1,\n    \"base_price\": 100,\n    \"expiration_timestamp\": 1234\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/sell",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"sell"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sell",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Auction created (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gacha_id\": 1,\n    \"base_price\": 100,\n    \"expiration_timestamp\": 2145920400\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/sell",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"sell"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negative_bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Invalid bid price (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/bid/1/0",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"bid",
+						"1",
+						"0"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "base_price_bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Bid under base price (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/bid/1/99",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"bid",
+						"1",
+						"99"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Bidded successfully (200)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/bid/1/100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"bid",
+						"1",
+						"100"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "double_bid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Already highest bidder (400)\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/bid/1/100",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"bid",
+						"1",
+						"100"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
