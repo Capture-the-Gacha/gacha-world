@@ -1,8 +1,14 @@
 import uvicorn, os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, Header, HTTPException
 from fastapi.responses import Response
+from fastapi.security import APIKeyHeader
 import httpx
+from typing import List, Annotated
+
+from player_model import Player, Recharge, RechargePublic, Collection, CollectionPublic, Roll, RollPublic
+from auth_model import User, UserCredentials, PatchUser
+from auction_model import Auction, AuctionPublic
 
 load_dotenv()
 
@@ -29,62 +35,72 @@ async def forward(request: Request, url: str):
     return Response(content=response.content, status_code=response.status_code, headers=response.headers)
 
 
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
+
+async def verify_token(token: str = Depends(api_key_header)) -> str:
+    if token is None:
+        raise HTTPException(status_code=401, detail="Invalid or missing token")
+    if not token.startswith('Bearer '):
+        raise HTTPException(status_code=401, detail="`Bearer ` prefix is missing")
+
+TokenDep = Annotated[str, Depends(verify_token)]
+
 # ===== Player =====
 
 @app.get('/getCollection')
-async def getCollection(request: Request):
+async def getCollection(request: Request, token: TokenDep) -> List[CollectionPublic]:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/getCollection')
 
 @app.post('/recharge/{player_id}/{amount}')
-async def recharge(request: Request, player_id: str, amount: str):
+async def recharge(player_id: str, amount: str, request: Request) -> dict:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/recharge/{player_id}/{amount}')
 
 @app.get('/getBalance')
-async def getBalance(request: Request):
+async def getBalance(request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/getBalance')
 
-@app.get('/getRecharges')
-async def getRecharges(request: Request):
+@app.get('/getRecharges', response_model=List[RechargePublic])
+async def getRecharges(request: Request, token: TokenDep) -> List[Recharge]:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/getRecharges')
 
 @app.get('/roll')
-async def roll(request: Request):
+async def roll(request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/roll')
 
-@app.get('/getRolls')
-async def getRolls(request: Request):
+@app.get('/getRolls', response_model=List[RollPublic])
+async def getRolls(request: Request, token: TokenDep) -> List[Roll]:
     return await forward(request, f'https://{PLAYER_HOST}:{PORT}/getRolls')
 
 # ===== Auction =====
 
 @app.post('/sell')
-async def sell(request: Request):
+async def sell(auction: AuctionPublic, request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUCTION_HOST}:{PORT}/sell')
 
 @app.post('/bid/{auction_id}/{bid}')
-async def bid(request: Request, auction_id: str, bid: str):
+async def bid(auction_id: str, bid: str, request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUCTION_HOST}:{PORT}/bid/{auction_id}/{bid}')
 
 # ===== Auth =====
 
 @app.post('/register')
-async def register(request: Request):
+async def register(player: UserCredentials, request: Request) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/register')
 
 @app.post('/login')
-async def login(request: Request):
+async def login(player: UserCredentials, request: Request) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/login')
 
 @app.post('/logout')
-async def logout(request: Request):
+async def logout(request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/logout')
 
 @app.patch('/editAccount')
-async def editAccount(request: Request):
+async def editAccount(new_player: PatchUser, request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/editAccount')
 
 @app.delete('/deleteAccount')
-async def deleteAccount(request: Request):
+async def deleteAccount(request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/deleteAccount')
 
 if __name__ == '__main__':

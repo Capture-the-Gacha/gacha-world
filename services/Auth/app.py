@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from typing import Annotated
 from contextlib import asynccontextmanager
-from model import Player, PlayerCredentials, PatchPlayer, create_db_and_tables, SessionDep
+from model import User, UserCredentials, PatchUser, create_db_and_tables, SessionDep
 from sqlmodel import select
 
 load_dotenv()
@@ -93,12 +93,12 @@ def validate_password(password: str) -> None:
 
 
 @app.post('/register')
-async def register(player: Player, session: SessionDep):
+async def register(player: User, session: SessionDep) -> dict:
     username = player.username
     password = player.password
 
     # Check if username is already taken
-    query = select(Player).where(Player.username == username)
+    query = select(User).where(User.username == username)
     if session.exec(query).first():
         raise HTTPException(status_code=400, detail=f'Username "{username}" is already taken')
 
@@ -111,19 +111,19 @@ async def register(player: Player, session: SessionDep):
     player_id = create_player(username)
 
     # Save player to database
-    player = Player(id=player_id, username=username, password=hashed)
+    player = User(id=player_id, username=username, password=hashed)
     session.add(player)
     session.commit()
     
     return { 'message': 'User created', 'player_id': player_id }
 
 @app.post('/login')
-async def login(credentials: PlayerCredentials, session: SessionDep):
+async def login(credentials: UserCredentials, session: SessionDep) -> dict:
     username = credentials.username
     password = credentials.password
 
     # Check if user exists and if password matches
-    query = select(Player).where(Player.username == username)
+    query = select(User).where(User.username == username)
     player = session.exec(query).first()
     if not player or not bcrypt.checkpw(password.encode('utf-8'), player.password.encode('utf-8')):
         raise HTTPException(status_code=401, detail='Login failed: Invalid username or password')
@@ -140,7 +140,7 @@ async def login(credentials: PlayerCredentials, session: SessionDep):
     return { 'message': 'Login successful', 'token': token }
 
 @app.post('/logout')
-async def logout(token: TokenDep):
+async def logout(token: TokenDep) -> dict:
     if not token:
         raise HTTPException(status_code=401, detail='Token missing')
     validate(token)
@@ -148,13 +148,13 @@ async def logout(token: TokenDep):
     return { 'message': 'Logged out' }
      
 @app.patch('/editAccount')
-async def edit_account(new_player: PatchPlayer, session: SessionDep, token: TokenDep):
+async def edit_account(new_player: PatchUser, session: SessionDep, token: TokenDep) -> dict:
     player_id = validate(token)['sub']
 
     if not new_player.username and not new_player.password:
         raise HTTPException(status_code=400, detail='No fields to update')
 
-    query = select(Player).where(Player.id == player_id)
+    query = select(User).where(User.id == player_id)
     player = session.exec(query).first()
     if not player:
         raise HTTPException(status_code=404, detail='Player not found')
@@ -163,7 +163,7 @@ async def edit_account(new_player: PatchPlayer, session: SessionDep, token: Toke
 
     if new_player.username:
         # Check if it's unique
-        query = select(Player).where(Player.username == new_player.username)
+        query = select(User).where(User.username == new_player.username)
         if session.exec(query).first():
             raise HTTPException(status_code=400, detail=f'Username "{new_player.username}" is already taken')
         
@@ -189,10 +189,10 @@ async def edit_account(new_player: PatchPlayer, session: SessionDep, token: Toke
     return { 'message': res }
 
 @app.delete('/deleteAccount')
-async def delete_account(token: TokenDep, session: SessionDep):
+async def delete_account(token: TokenDep, session: SessionDep) -> dict:
     player_id = validate(token)['sub']
 
-    query = select(Player).where(Player.id == player_id)
+    query = select(User).where(User.id == player_id)
     player = session.exec(query).first()
     if not player:
         raise HTTPException(status_code=404, detail='Player not found')

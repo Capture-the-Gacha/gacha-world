@@ -17,15 +17,15 @@ def get_session():
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-class Player(SQLModel, table=True):
+class User(SQLModel, table=True):
     id: int = Field(primary_key=True)
     username: str = Field()
     password: str = Field()
 
-class PlayerCredentials(SQLModel):
+class UserCredentials(SQLModel):
     username: str = Field()
     password: str = Field()
 
-class PatchPlayer(SQLModel):
+class PatchUser(SQLModel):
     username: str = Field(default=None)
     password: str = Field(default=None)

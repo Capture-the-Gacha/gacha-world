@@ -83,7 +83,9 @@ services:
 
   api-gateway:
     hostname: ${API_GATEWAY_HOST}
-    build: ./services/Gateway
+    build:
+      context: .
+      dockerfile: ./services/Gateway/Dockerfile
     depends_on:
       - player
       - auction
