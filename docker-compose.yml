@@ -183,6 +183,8 @@ services:
     depends_on:
       gacha-db:
         condition: service_healthy
+    volumes:
+      - ase-gacha-images:/app/images
     env_file: .env
     secrets:
       - source: gacha-cert
@@ -255,6 +257,7 @@ volumes:
   ase-player-db:
   ase-auction-db:
   ase-gacha-db:
+  ase-gacha-images:
   ase-auth-db:
 
 networks:
