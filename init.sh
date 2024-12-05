@@ -11,6 +11,7 @@ cd certs
     test -f player-cert.pem || { echo "    Creating Player certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out player-cert.pem -keyout player-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
     test -f auction-cert.pem || { echo "    Creating Auction certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out auction-cert.pem -keyout auction-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
     test -f gateway-cert.pem || { echo "    Creating Gateway certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out gateway-cert.pem -keyout gateway-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
+    test -f admin-gateway-cert.pem || { echo "    Creating Admin Gateway certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out admin-gateway-cert.pem -keyout admin-gateway-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
     test -f gacha-cert.pem || { echo "    Creating Gacha certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out gacha-cert.pem -keyout gacha-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
     test -f auth-cert.pem || { echo "    Creating Auth certificates..."; openssl req -x509 -newkey rsa:4096 -nodes -out auth-cert.pem -keyout auth-key.pem -days 365 -subj "/" > /dev/null 2>&1; }
     echo "All certificates and keys have been created."

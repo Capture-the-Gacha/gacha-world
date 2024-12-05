@@ -19,7 +19,7 @@ PLAYER_HOST = os.getenv('PLAYER_HOST')
 AUCTION_HOST = os.getenv('AUCTION_HOST')
 AUTH_HOST = os.getenv('AUTH_HOST')
 GACHA_HOST = os.getenv('GACHA_HOST')
-PORT = os.getenv('PORT')
+PORT = int(os.getenv('PORT'))
 
 app = FastAPI()
 
@@ -104,4 +104,4 @@ async def deleteAccount(request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/deleteAccount')
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=5000, ssl_certfile=CERT_PATH, ssl_keyfile=KEY_PATH)
+    uvicorn.run(app, host='0.0.0.0', port=PORT, ssl_certfile=CERT_PATH, ssl_keyfile=KEY_PATH)

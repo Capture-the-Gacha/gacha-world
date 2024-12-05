@@ -1,5 +1,6 @@
+version: '3.8'
+
 services:
-   
   player:
     hostname: ${PLAYER_HOST}
     build: ./services/Player
@@ -13,6 +14,8 @@ services:
       - source: player-key
         target: key
       - jwt-public-key
+    networks:
+      - private
 
   player-db:
     image: mysql:8
@@ -39,6 +42,8 @@ services:
       --ssl-cert=${CERT_PATH}
       --ssl-key=${KEY_PATH}
       --require_secure_transport=ON
+    networks:
+      - private
 
   auction:
     hostname: ${AUCTION_HOST}
@@ -54,7 +59,9 @@ services:
       - source: auction-key
         target: key
       - jwt-public-key
-    
+    networks:
+      - private
+
   auction-db:
     image: mysql:8
     hostname: ${AUCTION_DB_HOST}
@@ -80,6 +87,8 @@ services:
       --ssl-cert=${CERT_PATH}
       --ssl-key=${KEY_PATH}
       --require_secure_transport=ON
+    networks:
+      - private
 
   api-gateway:
     hostname: ${API_GATEWAY_HOST}
@@ -104,6 +113,24 @@ services:
       retries: 10
       start_period: 30s
       timeout: 10s
+    networks:
+      - public
+      - private
+
+  api-gateway-admin:
+    hostname: ${API_GATEWAY_ADMIN_HOST}
+    build: ./services/AdminGateway
+    restart: always
+    ports:
+      - "5001:5001"
+    env_file: .env
+    secrets:
+      - source: admin-gateway-cert
+        target: cert
+      - source: admin-gateway-key
+        target: key
+    networks:
+      - private
 
   auth:
     hostname: ${AUTH_HOST}
@@ -119,6 +146,8 @@ services:
         target: key
       - jwt-public-key
       - jwt-private-key
+    networks:
+      - private
 
   auth-db:
     image: mysql:8
@@ -145,6 +174,8 @@ services:
       --ssl-cert=${CERT_PATH}
       --ssl-key=${KEY_PATH}
       --require_secure_transport=ON
+    networks:
+      - private
 
   gacha:
     hostname: ${GACHA_HOST}
@@ -159,6 +190,8 @@ services:
       - source: gacha-key
         target: key
       - jwt-public-key
+    networks:
+      - private
 
   gacha-db:
     image: mysql:8
@@ -185,7 +218,8 @@ services:
       --ssl-cert=${CERT_PATH}
       --ssl-key=${KEY_PATH}
       --require_secure_transport=ON
-
+    networks:
+      - private
 
 secrets:
   player-cert:
@@ -204,6 +238,10 @@ secrets:
     file: ./certs/gateway-cert.pem
   gateway-key:
     file: ./certs/gateway-key.pem
+  admin-gateway-cert:
+    file: ./certs/admin-gateway-cert.pem
+  admin-gateway-key:
+    file: ./certs/admin-gateway-key.pem
   auth-cert:
     file: ./certs/auth-cert.pem
   auth-key:
@@ -212,10 +250,15 @@ secrets:
     file: ./secrets/jwt-public-key.pub
   jwt-private-key:
     file: ./secrets/jwt-private-key.pem
-  
 
 volumes:
   ase-player-db:
   ase-auction-db:
   ase-gacha-db:
   ase-auth-db:
+
+networks:
+  private:
+    driver: bridge
+  public:
+    driver: bridge
