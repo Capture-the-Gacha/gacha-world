@@ -1,4 +1,4 @@
-import uvicorn, os, httpx, urllib3, jwt
+import uvicorn, os, httpx, urllib3, jwt, logging, sys
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -33,6 +33,13 @@ EXTEND_EXPIRATION_SECONDS = 30
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
 	JWT_PUBLIC_KEY = f.read().strip()
 
+
+# Logging for lifespan
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout, format='%(name)s     %(message)s')
+logger = logging.getLogger('AUCTION')
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
 	# Only on startup
@@ -57,36 +64,43 @@ async def check_auction_expiration() -> None:
 	with Session(engine) as session:
 		expired_auctions_ids = session.exec(select(Auction.id).where(Auction.is_closed == False, Auction.expiration_timestamp < current_timestamp)).all()
 	
+	if not expired_auctions_ids:
+		logger.info('No expired auctions to handle...')
+
 	for auction_id in expired_auctions_ids:
-		close_auction(auction_id)
+		await close_auction(auction_id)
 
-def close_auction(auction_id: int, session: SessionDep) -> None:
-	auction = session.get(Auction, auction_id)
-	if auction is None or auction.is_closed:
-		return
+def close_auction(auction_id: int) -> None:
+	logger.info(f'Handling expired auction {auction_id}')
 
-	# If no one bid, return the gacha
-	if auction.last_bidder_id is None:
-		response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
+	with Session(engine) as session:
+		auction = session.get(Auction, auction_id)
+		if auction is None or auction.is_closed:
+			return
+
+		# If no one bid, return the gacha
+		if auction.last_bidder_id is None:
+			response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
+			if not response.is_success:
+				return
+			auction.is_closed = True
+			session.commit()
+			logger.info(f'Auction {auction.id} expired, gacha returned to creator')
+			return
+
+		# ! Consistency problems, what if one fails
+		# If someone bid transfer the bid amount to the creator
+		response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False, timeout=TIMEOUT)
+		if not response.is_success:
+			return
+		# And transfer the gacha
+		response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
 		if not response.is_success:
 			return
 		auction.is_closed = True
 		session.commit()
-		print(f'[AUCTION] Auction {auction.id} expired, gacha returned to creator')
-		return
-
-	# ! Consistency problems, what if one fails
-	# If someone bid transfer the bid amount to the creator
-	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False, timeout=TIMEOUT)
-	if not response.is_success:
-		return
-	# And transfer the gacha
-	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
-	if not response.is_success:
-		return
-	auction.is_closed = True
-	session.commit()
-	print(f'[AUCTION] Auction {auction.id} closed with highest_bid = {auction.highest_bid}, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
+		
+	logger.info(f'Auction {auction.id} expired, gacha transferred to last_bidder_id = {auction.last_bidder_id}')
 
 
 
