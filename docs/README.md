@@ -1,1 +1,382 @@
-# Final report (TODO)
+# Capture the Gacha
+
+**Advanced Software Engineering (Lab) – 2024/2025**
+
+*Lorenzo Bandini, Samuele Franchi, Luca Cordisco*
+
+---
+
+## Table of Contents
+
+- [Capture the Gacha](#capture-the-gacha)
+  - [Table of Contents](#table-of-contents)
+  - [1. Introduction](#1-introduction)
+  - [2. Gacha Overview](#2-gacha-overview)
+    - [2.1 Description](#21-description)
+    - [2.2 Rarities and Probabilities](#22-rarities-and-probabilities)
+    - [2.3 Some Examples of Gacha](#23-some-examples-of-gacha)
+      - [Glacior](#glacior)
+      - [Acquashade](#acquashade)
+  - [3. Architecture](#3-architecture)
+    - [3.1 Overview](#31-overview)
+    - [3.2 Microservices](#32-microservices)
+    - [3.3 Interactions and Design Decisions](#33-interactions-and-design-decisions)
+  - [4. User Stories](#4-user-stories)
+  - [4.1 User Stories for External Users](#41-user-stories-for-external-users)
+    - [Account Management](#account-management)
+    - [Collection Management](#collection-management)
+    - [Market Operations](#market-operations)
+  - [4.2 User Stories for Admin](#42-user-stories-for-admin)
+    - [Admin Account Management](#admin-account-management)
+    - [Gacha Management](#gacha-management)
+  - [5. Market Rules](#5-market-rules)
+  - [6. Testing](#6-testing)
+  - [7. Security – Data](#7-security--data)
+    - [7.1 Input Sanitization](#71-input-sanitization)
+    - [7.2 Data Encryption](#72-data-encryption)
+  - [8. Security – Authorization and Authentication](#8-security--authorization-and-authentication)
+  - [9. Security – Analyses](#9-security--analyses)
+    - [Static Analysis](#static-analysis)
+    - [Docker Image Vulnerabilities](#docker-image-vulnerabilities)
+  - [10. Additional Features](#10-additional-features)
+
+---
+
+## 1. Introduction
+
+This document presents the final report for the **Capture the Gacha** project. Our goal was to design and implement a microservices-based application featuring Gacha mechanics and an auction-based marketplace in a secure and scalable architecture.
+
+The system provides the following core functionalities:
+
+- Player and admin management with secure login/logout.
+- Gacha mechanics, including random drop based on predefined rarities.
+- Auctions for trading Gachas between players.
+
+---
+
+## 2. Gacha Overview
+
+### 2.1 Description
+
+In our system, a **Gacha** represents a collectible item that players can obtain through rolls, which are random draws. Each Gacha has an associated name, rarity, and image, and is uniquely identified by an ID to distinguish it from other Gachas.
+
+### 2.2 Rarities and Probabilities
+
+The Gachas are categorized into four rarities, each with a specific probability of being obtained through rolls:
+
+| Rarity    | Probability |
+|-----------|-------------|
+| Common    | 50%         |
+| Rare      | 30%         |
+| Epic      | 15%         |
+| Legendary | 5%          |
+
+### 2.3 Some Examples of Gacha
+
+#### Glacior
+
+![Glacior](glacior.jpg)
+
+```json
+{
+  "id": "4",
+  "name": "Glacior",
+  "rarity": "Rare",
+  "image": <Image>
+}
+```
+
+#### Acquashade
+
+![Acquashade](acquashade.jpg)
+
+```json
+{
+  "id": "2",
+  "name": "Acquashade",
+  "rarity": "Common",
+  "image": <Image>
+}
+```
+
+---
+
+## 3. Architecture
+
+![Architecture](./architecture.png)
+
+### 3.1 Overview
+
+Our system is designed using a microservices architecture, orchestrated with Docker Compose. Each service operates independently and communicates over secure RESTful APIs.
+
+### 3.2 Microservices
+
+| Microservice       | Description                                                         | Language/Technology |
+|--------------------|---------------------------------------------------------------------|---------------------|
+| **Auth Service**   | Manages user authentication, registration, login/logout, token issuance | Python (FastAPI)    |
+| **Player Service** | Manages player profiles, balances, and collections                   | Python (FastAPI)    |
+| **Gacha Service**  | Handles Gacha rolls and manages Gacha items                          | Python (FastAPI)    |
+| **Auction Service**| Manages auctions, bidding processes, and auction settlements         | Python (FastAPI)    |
+| **Gateway**        | Acts as an API gateway, routing requests to appropriate services     | Python (FastAPI)    |
+| **Admin Gateway**  | Provides administrative access to manage Gachas and players          | Python (FastAPI)    |
+
+### 3.3 Interactions and Design Decisions
+
+- **Auth Service** issues JWT tokens upon successful login. Tokens are validated by other services for authentication and authorization.
+- **Auth Service** interacts with the **Player Service** to verify user credentials and manage user sessions.
+- **Player Service** interacts with the **Gacha Service** to add Gachas to player collections after successful rolls.
+- **Gacha Service** communicates with the **Auction Service** to facilitate the transfer of Gachas post-auction.
+- **Auction Service** communicates with the **Player Service** to transfer Gachas and update player balances during auctions.
+- **Auction Service** connects with the **Player Service** to update player balances and Gacha collections based on auction outcomes.
+- **Gateway** routes requests from clients to the appropriate microservices, enhancing security and encapsulation.
+- **Admin Gateway** interacts with both **Auth Service** and **Gacha Service** to manage administrative tasks securely.
+
+---
+
+## 4. User Stories
+
+## 4.1 User Stories for External Users
+
+### Account Management
+
+• **AS A** player, **I WANT TO** create my game account/profile **SO THAT** I can participate in the game
+    - **Endpoint:** `POST /register`
+    - **Microservices:** Gateway, Auth Service, Auth DB
+
+• **AS A** player, **I WANT TO** delete my game account/profile **SO THAT** I can stop participating in the game
+    - **Endpoint:** `DELETE /deleteAccount`
+    - **Microservices:** Gateway, Auth Service, Auth DB
+
+• **AS A** player, **I WANT TO** modify my account/profile **SO THAT** I can personalize my account/profile
+    - **Endpoint:** `PATCH /editAccount`
+    - **Microservices:** Gateway, Auth Service, Auth DB
+
+• **AS A** player, **I WANT TO** login and logout from the system **SO THAT** I can access and leave the game
+    - **Endpoints:** `POST /login`, `POST /logout`
+    - **Microservices:** Gateway, Auth Service
+
+• **AS A** player, **I WANT TO** be safe about my account/profile data **SO THAT** nobody can enter my account and steal/modify my info
+    - **Endpoints:** *(Handled by authentication and authorization mechanisms)*
+    - **Microservices:** Gateway, Auth Service, Auth DB
+
+### Collection Management
+
+• **AS A** player, **I WANT TO** see my gacha collection **SO THAT** I know how many gachas I need to complete the collection
+    - **Endpoint:** `GET /gachas`
+    - **Microservices:** Gateway, Gacha Service, Player Service
+
+• **AS A** player, **I WANT TO** see the info of a gacha in my collection **SO THAT** I can view all the details of one of my gachas
+    - **Endpoint:** `GET /gachas/{gacha_id}`
+    - **Microservices:** Gateway, Gacha Service, Player Service
+
+• **AS A** player, **I WANT TO** see the system gacha collection **SO THAT** I know what I miss in my collection
+    - **Endpoint:** `GET /gachas`
+    - **Microservices:** Gateway, Gacha Service
+
+• **AS A** player, **I WANT TO** see the info of a system gacha **SO THAT** I can view the details of a gacha I am missing
+    - **Endpoint:** `GET /gachas/{gacha_id}`
+    - **Microservices:** Gateway, Gacha Service
+
+• **AS A** player, **I WANT TO** use in-game currency to roll a gacha **SO THAT** I can increase my collection
+    - **Endpoint:** `GET /roll`
+    - **Microservices:** Gateway, Gacha Service, Player Service
+
+• **AS A** player, **I WANT TO** be safe about the in-game currency transactions **SO THAT** my in-game currency is not wasted or stolen
+    - **Endpoints:** *(Handled by secure transaction mechanisms)*
+    - **Microservices:** Gateway, Player Service, Auth Service
+
+### Market Operations
+
+• **AS A** player, **I WANT TO** see the auction market **SO THAT** I can evaluate if I want to buy/sell a gacha
+    - **Endpoint:** `GET /auctions`
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** set an auction for one of my gachas **SO THAT** I can increase in-game currency
+    - **Endpoint:** `POST /sell`
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** bid for a gacha from the market **SO THAT** I can increase my collection
+    - **Endpoint:** `POST /bid/{auction_id}/{bid}`
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** view my transaction history **SO THAT** I can track my market movements
+    - **Endpoint:** `GET /transactions`
+    - **Microservices:** Gateway, Player Service
+
+• **AS A** player, **I WANT TO** receive a gacha when I win an auction **SO THAT** only I have the gacha I bid for
+    - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** receive in-game currency when someone wins my auction **SO THAT** the gacha sale works as expected
+    - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** receive my in-game currency back when I lose an auction **SO THAT** my in-game currency is only decreased when I buy something
+    - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
+    - **Microservices:** Gateway, Auction Service, Player Service
+
+• **AS A** player, **I WANT TO** ensure that the auctions cannot be tampered with **SO THAT** my in-game currency and collection are safe
+    - **Endpoints:** *(Ensured by secure communication and authentication mechanisms across all services)*
+    - **Microservices:** All relevant microservices, particularly Auth Service and Auction Service
+
+## 4.2 User Stories for Admin
+
+### Admin Account Management
+
+• **AS AN** admin, **I WANT TO** register and login as an admin **SO THAT** I can manage the system
+    - **Endpoints:** `POST /registerAdmin`, `POST /login`
+    - **Microservices:** Admin Gateway, Auth Service
+
+• **AS AN** admin, **I WANT TO** logout when I am done **SO THAT** my admin session is secure
+    - **Endpoint:** `POST /logout`
+    - **Microservices:** Admin Gateway, Auth Service
+
+• **AS AN** admin, **I WANT TO** delete my account **SO THAT** I can remove my administrative access
+    - **Endpoint:** `DELETE /deleteAccount`
+    - **Microservices:** Admin Gateway, Auth Service
+
+### Gacha Management
+
+• **AS AN** admin, **I WANT TO** see all gachas **SO THAT** I can monitor the available gacha items
+    - **Endpoint:** `GET /gachas`
+    - **Microservices:** Admin Gateway, Gacha Service
+
+• **AS AN** admin, **I WANT TO** see a specific gacha by ID **SO THAT** I can view its details
+    - **Endpoint:** `GET /gachas/{gacha_id}`
+    - **Microservices:** Admin Gateway, Gacha Service
+
+• **AS AN** admin, **I WANT TO** publish a new gacha **SO THAT** I can add new items to the system
+    - **Endpoint:** `POST /gachas`
+    - **Microservices:** Admin Gateway, Gacha Service
+
+• **AS AN** admin, **I WANT TO** modify a gacha with a specific ID **SO THAT** I can update its details
+    - **Endpoint:** `PUT /gachas/{gacha_id}`
+    - **Microservices:** Admin Gateway, Gacha Service
+
+• **AS AN** admin, **I WANT TO** delete a gacha **SO THAT** I can remove items from the system
+    - **Endpoint:** `DELETE /gachas/{gacha_id}`
+    - **Microservices:** Admin Gateway, Gacha Service
+
+---
+
+## 5. Market Rules
+
+Our marketplace operates under the following rules to ensure fair and secure transactions:
+
+- **Bid Handling**:
+  - When a player places a bid higher than the current highest bid, the previous highest bidder is automatically refunded their bid amount.
+
+- **Last-Second Bidding**:
+  - If a bid is placed within the last 30 seconds of the auction's expiration, the auction expiration time is extended by an additional 30 seconds to allow for counter-bids.
+
+- **Highest Bidder Restrictions**:
+  - Players cannot place a bid on an auction if they are already the highest bidder. This prevents players from repeatedly outbidding themselves to unfairly extend the auction duration.
+
+- **Auction Expiration**:
+  - If no bids are placed, the auction expires, and the Gacha is returned to the seller.
+  - Upon auction completion, if there is a highest bidder, the Gacha is transferred to them, and the seller receives the final bid amount.
+
+- **Currency Management**:
+  - Players' in-game currency is securely managed. When a player places a bid, the bid amount is deducted from their balance. If outbid, the amount is refunded promptly.
+  - If a player wins an auction, the bid amount is transferred to the seller, ensuring transparent and secure transactions.
+
+- **Auction Closure**:
+  - The system automatically handles auction expirations, closing auctions and processing settlements without manual intervention.
+
+- **Transaction Security**:
+  - All transactions are processed securely to prevent unauthorized access and ensure data integrity.
+
+---
+
+## 6. Testing
+
+We conducted thorough testing to ensure the reliability and correctness of our services:
+
+- **Isolation Testing**:
+  - Tested individual microservices separately to verify their functionality.
+  - Example: Tested the **Player Service** along with its database to ensure correct player data management.
+
+- **Service Interaction Testing**:
+  - Tested interactions between microservices where mocking was complex.
+  - Example: Tested the **Auction Service** with the **Player Service** to simulate realistic auction scenarios.
+
+---
+
+## 7. Security – Data
+
+### 7.1 Input Sanitization
+
+- **Username Validation**:
+  - **Microservices**: Auth Service
+  - **Description**: Usernames are validated to ensure they are at least 3 characters long, start with a letter, and contain only alphanumeric characters or underscores.
+  - **Implementation**: Input validation functions check usernames during registration and account updates to prevent injection attacks and invalid entries.
+
+### 7.2 Data Encryption
+
+- **Encrypted Data at Rest**:
+  - **Data**: User passwords
+  - **Database**: Auth Service Database
+  - **Encryption Method**: Passwords are hashed and salted using bcrypt before storage.
+  - **Encryption Location**: Passwords are hashed in the Auth Service before being stored, ensuring plaintext passwords are never saved or transmitted.
+
+---
+
+## 8. Security – Authorization and Authentication
+
+We implemented a **Centralized Authentication** scenario:
+
+- **Token Validation Steps**:
+  1. User logs in via the Auth Service and receives a JWT token.
+  2. Other microservices validate the token by checking its signature using the public key.
+
+- **Key Management**:
+  - **Private Key**: Stored securely in the Auth Service to sign tokens.
+  - **Public Key**: Distributed to other microservices for token verification.
+
+- **Access Token Payload Format**:
+
+  ```json
+  {ghcr.io
+    "iss": "https://auth.server.com",
+    "sub": "<user_id>",
+    "iat": <issued_at_timestamp>,
+    "exp": <expiration_timestamp>,
+    "jti": "<unique_token_id>",
+    "role": "<user_role>"
+  }
+  ```
+
+- **Role-Based Access**:
+  - Roles (`user`, `admin`) are embedded in the token payload, allowing services to enforce access control based on user roles.
+
+---
+
+## 9. Security – Analyses
+
+### Static Analysis
+
+- **Tool Used**: Bandit
+- **Command Used**: `bandit -r ./services`
+- **Results**: Identified and resolved potential security issues in the codebase.
+
+### Docker Image Vulnerabilities
+
+- **Tool Used**: Docker Scout
+- **Repository**: `ghcr.io/username/gacha-world`
+- **Results**: Scanned custom Docker images for vulnerabilities. Our images showed no critical vulnerabilities.
+
+*Note*: Docker Scout was not used for third-party images.
+
+---
+
+## 10. Additional Features
+
+- **Automatic Auction Expiration Handling**:
+  - **Description**: The system automatically handles auction expirations, closing auctions and processing settlements without manual intervention.
+  - **Implementation**: Implemented scheduled tasks in the **Auction Service** to periodically check for expired auctions and execute the necessary operations.
+
+- **Admin Gateway**:
+  - **Description**: A dedicated gateway for administrative functions, separating admin operations from regular user activities.
+  - **Implementation**: The **Admin Gateway** routes admin-specific requests to the appropriate services and enforces authentication and authorization policies for admin users.
+
+---
