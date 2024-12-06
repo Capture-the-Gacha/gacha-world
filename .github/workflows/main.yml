@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - '.github/workflows/main.yml'
-      - 'tests/**'
+      - 'docs/tests/**'
       - 'services/**'
       - 'docker-compose.yml'
 
@@ -43,4 +43,7 @@ jobs:
           cd docs/tests
           ./player_integration_test.sh
 
-      # Auction tests would involve the whole system, with plenty of requests, so we said to use only the Unit tests for now
+      - name: Run Auction tests
+        run: |
+          cd docs/tests
+          ./auction_integration_test.sh

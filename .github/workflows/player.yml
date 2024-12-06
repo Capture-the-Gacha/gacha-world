@@ -7,8 +7,8 @@ on:
     paths:
       - '.github/workflows/player.yml'
       - 'services/Player/**'
-      - 'tests/PlayerTesting.postman_collection.json'
-      - 'tests/environment.postman_globals.json'
+      - 'docs/tests/collections/PlayerTesting.postman_collection.json'
+      - 'docs/tests/collections/environment.postman_globals.json'
       - 'docker-compose.yml'
 
 jobs:
