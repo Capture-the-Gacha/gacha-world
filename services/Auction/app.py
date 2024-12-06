@@ -89,8 +89,8 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 
 
 
-def remove_gacha(session: Session, gacha_id: int) -> None:
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{gacha_id}', verify=False)
+def remove_gacha(session: Session, player_id: int, gacha_id: int) -> None:
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{player_id}/{gacha_id}', verify=False)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Player not found or does not have the gacha')
@@ -122,7 +122,7 @@ async def sell_gacha(auction: AuctionPublic, session: SessionDep, token: TokenDe
 	# In one API call we check if the player exists and if the player has the gacha
 	# If the response is successful we create the auction
 	if ENV == 'prod':
-		remove_gacha(session, gacha_id)
+		remove_gacha(session, player_id, gacha_id)
 	
 	session.commit()
 	return { 'message': 'Auction created', 'auction_id': auction.id }
@@ -135,8 +135,8 @@ def gift_money(session: Session, player_id: int, amount: float) -> None:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Previous bidder not found')
 	
-def remove_money(session: Session, amount: float) -> None:
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{amount}', verify=False)
+def remove_money(session: Session, player_id: int, amount: float) -> None:
+	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{amount}', verify=False)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=400, detail='Player not found or does not have enough balance')
@@ -190,7 +190,7 @@ async def bid(auction_id: int, bid: float, session: SessionDep, token: TokenDep)
 	
 	# Ask Player service to remove the bid amount from the player's balance
 	if ENV == 'prod':
-		remove_money(session, bid)
+		remove_money(session, player_id, bid)
 
 	session.commit()
 	return { 'message': 'Bid successful' }
