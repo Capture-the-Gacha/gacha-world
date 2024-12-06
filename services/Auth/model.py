@@ -21,6 +21,7 @@ class User(SQLModel, table=True):
     id: int = Field(primary_key=True)
     username: str = Field()
     password: str = Field()
+    role: str = Field(default='user')
 
 class UserCredentials(SQLModel):
     username: str = Field()

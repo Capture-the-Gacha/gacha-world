@@ -204,9 +204,9 @@ services:
       - ase-gacha-db:/var/lib/mysql
       - .docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     secrets:
-      - source: auction-cert
+      - source: gacha-cert
         target: cert
-      - source: auction-key
+      - source: gacha-key
         target: key
     healthcheck:
       test: mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "USE ${MYSQL_DB}"

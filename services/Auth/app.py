@@ -6,7 +6,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from typing import Annotated
 from contextlib import asynccontextmanager
 from model import User, UserCredentials, PatchUser, create_db_and_tables, SessionDep
-from sqlmodel import select
+from sqlmodel import select, SQLModel, Field
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -34,8 +34,6 @@ with open(JWT_PRIVATE_KEY_PATH, 'r') as f:
 
 PLAYER_HOST = os.getenv('PLAYER_HOST')
 PORT = os.getenv('PORT')
-
-
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -97,6 +95,9 @@ async def register(player: User, session: SessionDep) -> dict:
     username = player.username
     password = player.password
 
+    if username == 'admin':
+        raise HTTPException(status_code=403, detail='Cannot register as admin')
+
     # Check if username is already taken
     query = select(User).where(User.username == username)
     if session.exec(query).first():
@@ -111,11 +112,36 @@ async def register(player: User, session: SessionDep) -> dict:
     player_id = create_player(username)
 
     # Save player to database
-    player = User(id=player_id, username=username, password=hashed)
+    player = User(id=player_id, username=username, password=hashed, role='user')
     session.add(player)
     session.commit()
     
     return { 'message': 'User created', 'player_id': player_id }
+
+@app.post('/registerAdmin')
+async def register_admin(admin: User, session: SessionDep) -> dict:
+    username = admin.username
+    password = admin.password
+
+    # Check if admin is already registered
+    query = select(User).where(User.username == username)
+    if session.exec(query).first():
+        raise HTTPException(status_code=400, detail='Admin is already registered')
+
+    # Validate credentials
+    validate_username(username)
+    validate_password(password)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    # Forward request to Player service
+    admin_id = create_player(username)
+
+    # Save admin to database
+    admin = User(id=admin_id, username=username, password=hashed, role='admin')
+    session.add(admin)
+    session.commit()
+    
+    return { 'message': 'Admin created', 'admin_id': admin_id }
 
 @app.post('/login')
 async def login(credentials: UserCredentials, session: SessionDep) -> dict:
@@ -128,14 +154,16 @@ async def login(credentials: UserCredentials, session: SessionDep) -> dict:
     if not player or not bcrypt.checkpw(password.encode('utf-8'), player.password.encode('utf-8')):
         raise HTTPException(status_code=401, detail='Login failed: Invalid username or password')
 
-    now = datetime.datetime.now(datetime.UTC)
-    token = jwt.encode({
+    now = datetime.datetime.now(datetime.timezone.utc)
+    payload = {
         'iss': 'https://auth.server.com',
         'sub': str(player.id),
         'iat': now,
         'exp': now + datetime.timedelta(hours=1),
-        'jti': str(uuid.uuid4())
-    }, JWT_PRIVATE_KEY, algorithm='RS256')
+        'jti': str(uuid.uuid4()),
+        'role': player.role
+    }
+    token = jwt.encode(payload, JWT_PRIVATE_KEY, algorithm='RS256')
 
     return { 'message': 'Login successful', 'token': token }
 
