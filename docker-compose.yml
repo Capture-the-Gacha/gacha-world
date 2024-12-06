@@ -194,6 +194,9 @@ services:
     volumes:
       - ./services/Gacha/images:/app/images
     env_file: .env
+    # !DELETE
+    ports:
+      - "5002:5000"
     secrets:
       - source: gacha-cert
         target: cert

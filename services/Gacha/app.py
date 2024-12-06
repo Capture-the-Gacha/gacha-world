@@ -136,7 +136,7 @@ async def delete_gacha(gacha_id: int, token: TokenDep, session: SessionDep):
 
 # From Player service
 @app.get('/roll')
-async def roll_gacha(token: TokenDep, session: SessionDep):
+async def roll_gacha(session: SessionDep):
     selected_rarity = random.choices(RARITIES, PROBABILITIES)[0]
     gachas = session.exec(select(Gacha).where(Gacha.rarity == selected_rarity)).all()
     if not gachas:

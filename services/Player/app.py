@@ -1,4 +1,4 @@
-import uvicorn, os, jwt
+import uvicorn, os, jwt, httpx, urllib3
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -6,6 +6,7 @@ from model import Player, Recharge, RechargePublic, Collection, CollectionPublic
 from typing import List, Annotated
 from sqlmodel import select
 from fastapi.security import OAuth2PasswordBearer
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Set to 'test' for unit testing
 ENV = os.getenv('ENV', 'prod')
@@ -22,6 +23,9 @@ CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
 GACHAPON_PRICE = float(os.getenv('GACHAPON_PRICE'))
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
+TIMEOUT = int( os.getenv('TIMEOUT', 10) )
+GACHA_HOST = os.getenv('GACHA_HOST')
+PORT = int( os.getenv('PORT') )
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
 	JWT_PUBLIC_KEY = f.read().strip()
@@ -94,9 +98,15 @@ async def get_recharges(session: SessionDep, token: TokenDep) -> List[Recharge]:
 	return session.exec(query).all()
 
 
-# TODO: Get from Gacha service
 def get_random_gacha_id() -> int:
-	return 1
+	if ENV == 'test':
+		return 1
+	
+	response = httpx.get(f'https://{GACHA_HOST}:{PORT}/roll', verify=False, timeout=TIMEOUT)
+	if response.status_code != 200:
+		raise HTTPException(status_code=404, detail='No gacha available')
+
+	return response.json()['id']
 
 @app.get('/roll')
 async def roll(session: SessionDep, token: TokenDep) -> dict:
