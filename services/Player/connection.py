@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
+from sqlmodel import create_engine
 import os
 
 load_dotenv()
@@ -16,4 +17,4 @@ DATABASE_URL = f'mysql+pymysql://root:{MYSQL_ROOT_PASSWORD}@{PLAYER_DB_HOST}:330
                 '&ssl_check_hostname=false' \
                 '&ssl_verify_cert=false'
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, max_overflow=50)

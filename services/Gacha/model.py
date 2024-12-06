@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlmodel import SQLModel, Field, create_engine, Session
+from sqlmodel import SQLModel, Field, Session
 from typing import Annotated, Optional
 from connection import engine  # Import the engine
 

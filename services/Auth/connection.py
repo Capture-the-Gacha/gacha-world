@@ -16,4 +16,4 @@ DATABASE_URL = f'mysql+pymysql://root:{MYSQL_ROOT_PASSWORD}@{AUTH_DB_HOST}:3306/
                 '&ssl_check_hostname=false' \
                 '&ssl_verify_cert=false'
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, max_overflow=50)
