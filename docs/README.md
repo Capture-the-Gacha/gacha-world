@@ -31,8 +31,10 @@
     - [Gacha Management](#gacha-management)
   - [5. Market Rules](#5-market-rules)
   - [6. Testing](#6-testing)
+    - [Unit Testing](#unit-testing)
+    - [Integration Testing](#integration-testing)
+    - [Performance Testing](#performance-testing)
   - [7. Security – Data](#7-security--data)
-    - [7.1 Input Sanitization](#71-input-sanitization)
     - [7.2 Data Encryption](#72-data-encryption)
   - [8. Security – Authorization and Authentication](#8-security--authorization-and-authentication)
   - [9. Security – Analyses](#9-security--analyses)
@@ -103,7 +105,7 @@ The Gachas are categorized into four rarities, each with a specific probability 
 
 ## 3. Architecture
 
-![Architecture](./architecture.png)
+![Architecture](./architecture.jpg)
 
 ### 3.1 Overview
 
@@ -290,21 +292,43 @@ Our marketplace operates under the following rules to ensure fair and secure tra
 
 ## 6. Testing
 
-We conducted thorough testing to ensure the reliability and correctness of our services:
+We conducted comprehensive testing to ensure the reliability, performance, and security of our services:
 
-- **Isolation Testing**:
-  - Tested individual microservices separately to verify their functionality.
-  - Example: Tested the **Player Service** along with its database to ensure correct player data management.
+### Unit Testing
 
-- **Service Interaction Testing**:
-  - Tested interactions between microservices where mocking was complex.
-  - Example: Tested the **Auction Service** with the **Player Service** to simulate realistic auction scenarios.
+- **Description**: Unit tests were developed for all microservice endpoints involving player operations. Each endpoint has at least one test for correct input (expecting a `200 OK` response) and one for incorrect input (expecting an error response).
+
+- **Tools Used**: Postman
+
+- **Implementation**:
+  - Created Postman collections such as `PlayerTesting.postman_collection.json` and `AuthTesting.postman_collection.json` to cover all player-related endpoints.
+  - Each endpoint within these collections includes tests for both valid and invalid inputs to ensure proper handling and response codes.
+
+### Integration Testing
+
+- **Description**: Integration tests were performed against the API Gateway using the same Postman collections used for unit testing to verify the interactions between microservices within the live architecture.
+
+- **Tools Used**: Postman
+
+- **Implementation**:
+  - Utilized collections like `PlayerIntegrationTesting.postman_collection.json` and `AuctionTesting.postman_collection.json` to conduct integration tests.
+  - Ensured that requests routed through the gateway correctly interact with the respective microservices, maintaining data integrity and consistent responses.
+
+### Performance Testing
+
+- **Description**: Performance tests were executed to evaluate the system's behavior under high load and verify the accuracy of gacha rarity distributions under stress.
+
+- **Tools Used**: Locust
+
+- **Implementation**:
+  - Developed Locust scripts targeting the API Gateway, specifically focusing on all player endpoints related to gacha operations.
+  - Conducted high-volume request simulations to ensure that the rarity distribution of gacha rolls remains consistent and accurate under load.
+
+esecuzione di bandit con `docker-compose --profile security up bandit` o `docker-compose run bandit`
 
 ---
 
 ## 7. Security – Data
-
-### 7.1 Input Sanitization
 
 - **Username Validation**:
   - **Microservices**: Auth Service

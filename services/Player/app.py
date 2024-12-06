@@ -150,13 +150,8 @@ async def get_rolls(session: SessionDep, token: TokenDep) -> List[Roll]:
 # === AUCTION API ===
 # ===================
 
-@app.post('/placeBid/{bid}')
-async def place_bid(bid: float, session: SessionDep, token: TokenDep) -> dict:
-	if ENV == 'prod':
-		player_id = validate(token).get('sub')
-	else:
-		player_id = MOCK_ID
-
+@app.post('/placeBid/{player_id}/{bid}')
+async def place_bid(player_id: int, bid: float, session: SessionDep) -> dict:
 	if bid <= 0:
 		raise HTTPException(status_code=400, detail='Bid must be positive')
 
@@ -188,13 +183,8 @@ async def refund_bid(player_id: int, bid: float, session: SessionDep) -> dict:
 	session.commit()
 	return { 'message': 'Bid refunded' }
 
-@app.post('/sellGacha/{gacha_id}')
-async def sell_gacha(gacha_id: int, session: SessionDep, token: TokenDep) -> dict:
-	if ENV == 'prod':
-		player_id = validate(token).get('sub')
-	else:
-		player_id = MOCK_ID
-
+@app.post('/sellGacha/{player_id}/{gacha_id}')
+async def sell_gacha(player_id: int, gacha_id: int, session: SessionDep) -> dict:
 	query = select(Collection).where(Collection.player_id == player_id, Collection.gacha_id == gacha_id)
 	entry = session.exec(query).first()
 

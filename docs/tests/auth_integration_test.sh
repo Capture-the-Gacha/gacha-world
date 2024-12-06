@@ -4,8 +4,8 @@
 export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs)
 
 # Bring down any existing Docker containers + volumes
+cd ../../services/Auth
 docker compose down -v
-
 # Bring up Docker containers with the latest build
 docker compose up -d --quiet-pull --build
 
@@ -27,10 +27,12 @@ while [ "$(curl -k -s -o /dev/null -w "%{http_code}" $api_host)" != "200" ]; do
 done
 
 # Run Newman tests
-newman run ../PlayerIntegrationTesting.postman_collection.json -e ../environment.postman_globals.json --insecure
+cd ../../tests/collections
+newman run AuthTesting.postman_collection.json -e environment.postman_globals.json --insecure
 NEWMAN_EXIT_CODE=$?
 
 # Bring down Docker containers after tests
+cd ../../services/Auth
 docker compose down -v
 
 # Return the same response code as Newman

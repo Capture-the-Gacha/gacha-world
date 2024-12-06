@@ -36,5 +36,5 @@ jobs:
       
       - name: Run tests
         run: |
-          cd services/Player
-          ./test.sh
+          cd docs/tests
+          ./player_unit_test.sh

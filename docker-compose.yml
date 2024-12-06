@@ -2,6 +2,7 @@ services:
   player:
     hostname: ${PLAYER_HOST}
     build: ./services/Player
+    image: lorebando/gacha-world:player-tagname
     depends_on:
       player-db:
         condition: service_healthy
@@ -47,6 +48,7 @@ services:
     hostname: ${AUCTION_HOST}
     platform: linux/amd64
     build: ./services/Auction
+    image: lorebando/gacha-world:auction-tagname
     depends_on:
       auction-db:
         condition: service_healthy
@@ -93,6 +95,7 @@ services:
     build:
       context: .
       dockerfile: ./services/Gateway/Dockerfile
+    image: lorebando/gacha-world:api-gateway-tagname
     depends_on:
       - player
       - auction
@@ -118,6 +121,7 @@ services:
   api-gateway-admin:
     hostname: ${API_GATEWAY_ADMIN_HOST}
     build: ./services/AdminGateway
+    image: lorebando/gacha-world:api-gateway-admin-tagname
     restart: always
     ports:
       - "5001:5001"
@@ -133,6 +137,7 @@ services:
   auth:
     hostname: ${AUTH_HOST}
     build: ./services/Auth
+    image: lorebando/gacha-world:auth-tagname
     depends_on:
       auth-db:
         condition: service_healthy
@@ -178,6 +183,7 @@ services:
   gacha:
     hostname: ${GACHA_HOST}
     build: ./services/Gacha
+    image: lorebando/gacha-world:gacha-tagname
     depends_on:
       gacha-db:
         condition: service_healthy
@@ -220,6 +226,30 @@ services:
       --require_secure_transport=ON
     networks:
       - private
+
+  bandit:
+    image: python:3.9
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install bandit && bandit -r ./services"
+    networks:
+      - private
+    profiles:
+      - security
+
+  pip-audit:
+    image: python:3.9
+    volumes:
+      - ./services:/app/services
+    working_dir: /app
+    command: >
+      sh -c "pip install pip-audit && find ./services -name 'requirements.txt' -exec pip-audit -r {} \\;"
+    networks:
+      - private
+    profiles:
+      - security
 
 secrets:
   player-cert:

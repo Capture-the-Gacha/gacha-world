@@ -35,12 +35,12 @@ jobs:
 
       - name: Run Auth tests
         run: |
-          cd tests/integration
-          ./auth_test.sh
+          cd docs/tests
+          ./auth_integration_test.sh
 
       - name: Run Player tests
         run: |
-          cd tests/integration
-          ./player_test.sh
+          cd docs/tests
+          ./player_integration_test.sh
 
       # Auction tests would involve the whole system, with plenty of requests, so we said to use only the Unit tests for now
