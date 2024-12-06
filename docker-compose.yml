@@ -233,6 +233,18 @@ services:
     profiles:
       - security
 
+  pip-audit:
+    image: python:3.9
+    volumes:
+      - ./services:/app/services
+    working_dir: /app
+    command: >
+      sh -c "pip install pip-audit && find ./services -name 'requirements.txt' -exec pip-audit -r {} \\;"
+    networks:
+      - private
+    profiles:
+      - security
+
 secrets:
   player-cert:
     file: ./certs/player-cert.pem
