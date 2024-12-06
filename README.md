@@ -65,3 +65,12 @@ cd tests/integration
 ./player_test.sh
 cd -
 ```
+
+### Security Testing
+
+Run `bandit` and `pip-audit` using `docker-compose`:
+
+```bash
+docker-compose run --rm bandit
+docker-compose run --rm pip-audit
+```
