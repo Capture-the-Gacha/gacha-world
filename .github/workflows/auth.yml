@@ -7,8 +7,8 @@ on:
     paths:
       - '.github/workflows/auth.yml'
       - 'services/Auth/**'
-      - 'tests/AuthTesting.postman_collection.json'
-      - 'tests/environment.postman_globals.json'
+      - 'docs/tests/collections/AuthTesting.postman_collection.json'
+      - 'docs/tests/collections/environment.postman_globals.json'
       - 'docker-compose.yml'
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
         run: npm install -g newman
         
       - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
+        usesdocs/tests/collections/r/setup-buildx-action@v3
       
       - name: Run tests
         run: |
