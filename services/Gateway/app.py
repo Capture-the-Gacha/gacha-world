@@ -81,6 +81,16 @@ async def sell(auction: AuctionPublic, request: Request, token: TokenDep) -> dic
 async def bid(auction_id: str, bid: str, request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUCTION_HOST}:{PORT}/bid/{auction_id}/{bid}')
 
+# ===== Gacha =====
+
+@app.get('/gachas')
+async def get_gachas(request: Request, token: TokenDep) -> dict:
+    return await forward(request, f'https://{GACHA_HOST}:{PORT}/gachas')
+
+@app.get('/gachas/{gacha_id}')
+async def get_gacha(request: Request, token: TokenDep, gacha_id: int) -> dict:
+    return await forward(request, f'https://{GACHA_HOST}:{PORT}/gachas/{gacha_id}')
+
 # ===== Auth =====
 
 @app.post('/register')
