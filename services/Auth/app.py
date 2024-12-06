@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-import bcrypt, jwt, datetime, uuid, os, requests as re, uvicorn, urllib3
+import bcrypt, jwt, datetime, uuid, os, httpx, uvicorn, urllib3
 from dotenv import load_dotenv
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from typing import Annotated
 from contextlib import asynccontextmanager
 from model import User, UserCredentials, PatchUser, create_db_and_tables, SessionDep
-from sqlmodel import select, SQLModel, Field
+from sqlmodel import select
 
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -25,6 +25,7 @@ CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
 JWT_PRIVATE_KEY_PATH = os.getenv('JWT_PRIVATE_KEY_PATH')
+TIMEOUT = os.getenv('TIMEOUT', 10)
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
     JWT_PUBLIC_KEY = f.read().strip()
@@ -58,7 +59,7 @@ def create_player(username: str) -> str:
         MOCK_ID += 1
         return MOCK_ID
 
-    response = re.post(f'https://{PLAYER_HOST}:{PORT}/newPlayer/{username}', verify=False)
+    response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/newPlayer/{username}', verify=False, timeout=TIMEOUT)
     if response.status_code != 201:
         raise HTTPException(status_code=400, detail=f'Username "{username}" is already taken')
     
@@ -68,7 +69,7 @@ def delete_player(username: str):
     if ENV == 'test':
         return
 
-    response = re.delete(f'https://{PLAYER_HOST}:{PORT}/deletePlayer/{username}', verify=False)
+    response = httpx.delete(f'https://{PLAYER_HOST}:{PORT}/deletePlayer/{username}', verify=False, timeout=TIMEOUT)
     if response.status_code != 204:
         raise HTTPException(status_code=404, detail='Player not found')
 
@@ -76,7 +77,7 @@ def edit_player(old_username: str, new_username: str):
     if ENV == 'test':
         return
 
-    response = re.patch(f'https://{PLAYER_HOST}:{PORT}/editPlayer/{old_username}/{new_username}', verify=False)
+    response = httpx.patch(f'https://{PLAYER_HOST}:{PORT}/editPlayer/{old_username}/{new_username}', verify=False, timeout=TIMEOUT)
     if response.status_code != 204:
         raise HTTPException(status_code=404, detail='Player not found')
 

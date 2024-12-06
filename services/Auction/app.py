@@ -1,4 +1,4 @@
-import uvicorn, os, requests as re, urllib3, jwt
+import uvicorn, os, httpx, urllib3, jwt
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -27,6 +27,7 @@ KEY_PATH = os.getenv('KEY_PATH')
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
 PLAYER_HOST = os.getenv('PLAYER_HOST')
 PORT = os.getenv('PORT')
+TIMEOUT = os.getenv('TIMEOUT', 10)
 EXTEND_EXPIRATION_SECONDS = 30
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
@@ -66,7 +67,7 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 
 	# If no one bid, return the gacha
 	if auction.last_bidder_id is None:
-		response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False)
+		response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
 		if not response.ok:
 			return
 		auction.is_closed = True
@@ -76,11 +77,11 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 
 	# ! Consistency problems, what if one fails
 	# If someone bid transfer the bid amount to the creator
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False)
+	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False, timeout=TIMEOUT)
 	if not response.ok:
 		return
 	# And transfer the gacha
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False)
+	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
 	if not response.ok:
 		return
 	auction.is_closed = True
@@ -90,7 +91,7 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 
 
 def remove_gacha(session: Session, player_id: int, gacha_id: int) -> None:
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{player_id}/{gacha_id}', verify=False)
+	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{player_id}/{gacha_id}', verify=False, timeout=TIMEOUT)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Player not found or does not have the gacha')
@@ -130,13 +131,13 @@ async def sell_gacha(auction: AuctionPublic, session: SessionDep, token: TokenDe
 
 
 def gift_money(session: Session, player_id: int, amount: float) -> None:
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{player_id}/{amount}', verify=False)
+	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{player_id}/{amount}', verify=False, timeout=TIMEOUT)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Previous bidder not found')
 	
 def remove_money(session: Session, player_id: int, amount: float) -> None:
-	response = re.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{amount}', verify=False)
+	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{amount}', verify=False, timeout=TIMEOUT)
 	if not response.ok:
 		session.rollback()
 		raise HTTPException(status_code=400, detail='Player not found or does not have enough balance')
