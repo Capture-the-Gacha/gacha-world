@@ -68,7 +68,7 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 	# If no one bid, return the gacha
 	if auction.last_bidder_id is None:
 		response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.creator_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
-		if not response.ok:
+		if not response.is_success:
 			return
 		auction.is_closed = True
 		session.commit()
@@ -78,11 +78,11 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 	# ! Consistency problems, what if one fails
 	# If someone bid transfer the bid amount to the creator
 	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{auction.creator_id}/{auction.highest_bid}', verify=False, timeout=TIMEOUT)
-	if not response.ok:
+	if not response.is_success:
 		return
 	# And transfer the gacha
 	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/transferGacha/{auction.last_bidder_id}/{auction.gacha_id}', verify=False, timeout=TIMEOUT)
-	if not response.ok:
+	if not response.is_success:
 		return
 	auction.is_closed = True
 	session.commit()
@@ -92,7 +92,7 @@ def close_auction(auction_id: int, session: SessionDep) -> None:
 
 def remove_gacha(session: Session, player_id: int, gacha_id: int) -> None:
 	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/sellGacha/{player_id}/{gacha_id}', verify=False, timeout=TIMEOUT)
-	if not response.ok:
+	if not response.is_success:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Player not found or does not have the gacha')
 
@@ -132,13 +132,13 @@ async def sell_gacha(auction: AuctionPublic, session: SessionDep, token: TokenDe
 
 def gift_money(session: Session, player_id: int, amount: float) -> None:
 	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/refundBid/{player_id}/{amount}', verify=False, timeout=TIMEOUT)
-	if not response.ok:
+	if not response.is_success:
 		session.rollback()
 		raise HTTPException(status_code=404, detail='Previous bidder not found')
 	
 def remove_money(session: Session, player_id: int, amount: float) -> None:
 	response = httpx.post(f'https://{PLAYER_HOST}:{PORT}/placeBid/{player_id}/{amount}', verify=False, timeout=TIMEOUT)
-	if not response.ok:
+	if not response.is_success:
 		session.rollback()
 		raise HTTPException(status_code=400, detail='Player not found or does not have enough balance')
 
