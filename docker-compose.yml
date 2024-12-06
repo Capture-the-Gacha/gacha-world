@@ -100,6 +100,7 @@ services:
       - player
       - auction
       - auth
+      - gacha
     ports:
       - '5000:5000'
     env_file: .env
@@ -122,6 +123,9 @@ services:
     hostname: ${API_GATEWAY_ADMIN_HOST}
     build: ./services/AdminGateway
     image: lorebando/gacha-world:api-gateway-admin-tagname
+    depends_on:
+      - auth
+      - gacha
     restart: always
     ports:
       - "5001:5001"

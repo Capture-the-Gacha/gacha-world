@@ -360,7 +360,7 @@ We implemented a **Centralized Authentication** scenario:
 - **Access Token Payload Format**:
 
   ```json
-  {ghcr.io
+  {
     "iss": "https://auth.server.com",
     "sub": "<user_id>",
     "iat": <issued_at_timestamp>,

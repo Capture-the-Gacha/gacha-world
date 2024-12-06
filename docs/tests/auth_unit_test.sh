@@ -27,12 +27,12 @@ while [ "$(curl -k -s -o /dev/null -w "%{http_code}" $api_host)" != "200" ]; do
 done
 
 # Run Newman tests
-cd ../../tests/collections
+cd ../../docs/tests/collections
 newman run AuthTesting.postman_collection.json -e environment.postman_globals.json --insecure
 NEWMAN_EXIT_CODE=$?
 
 # Bring down Docker containers after tests
-cd ../../services/Auth
+cd ../../../services/Auth
 docker compose down
 
 # Return the same response code as Newman

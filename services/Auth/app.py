@@ -25,11 +25,11 @@ CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
 JWT_PRIVATE_KEY_PATH = os.getenv('JWT_PRIVATE_KEY_PATH')
-TIMEOUT = os.getenv('TIMEOUT', 10)
+TIMEOUT = int( os.getenv('TIMEOUT', 10) )
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
     JWT_PUBLIC_KEY = f.read().strip()
-
+    
 with open(JWT_PRIVATE_KEY_PATH, 'r') as f:
     JWT_PRIVATE_KEY = f.read().strip()
 

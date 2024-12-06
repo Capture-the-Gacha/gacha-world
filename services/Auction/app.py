@@ -27,7 +27,7 @@ KEY_PATH = os.getenv('KEY_PATH')
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
 PLAYER_HOST = os.getenv('PLAYER_HOST')
 PORT = os.getenv('PORT')
-TIMEOUT = os.getenv('TIMEOUT', 10)
+TIMEOUT = int( os.getenv('TIMEOUT', 10) )
 EXTEND_EXPIRATION_SECONDS = 30
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
