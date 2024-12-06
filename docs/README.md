@@ -103,7 +103,7 @@ The Gachas are categorized into four rarities, each with a specific probability 
 
 ## 3. Architecture
 
-![Architecture](./architecture.png)
+![Architecture](./architecture.jpg)
 
 ### 3.1 Overview
 
