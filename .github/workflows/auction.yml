@@ -36,5 +36,5 @@ jobs:
       
       - name: Run tests
         run: |
-          cd services/Auction
-          ./test.sh
+          cd docs/tests
+          ./auction_unit_test.sh

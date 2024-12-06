@@ -3,9 +3,9 @@
 # Load environment variables from .env file
 export $(grep -v '^#' ../../.env | grep -v '^\s*$' | xargs)
 
-# Bring down any existing Docker containers + volumes
-docker compose down -v
-
+# Bring down any existing Docker containers
+cd ../../services/Player
+docker compose down
 # Bring up Docker containers with the latest build
 docker compose up -d --quiet-pull --build
 
@@ -27,11 +27,13 @@ while [ "$(curl -k -s -o /dev/null -w "%{http_code}" $api_host)" != "200" ]; do
 done
 
 # Run Newman tests
-newman run ../AuthTesting.postman_collection.json -e ../environment.postman_globals.json --insecure
+cd ../../tests/collections
+newman run PlayerTesting.postman_collection.json -e environment.postman_globals.json --insecure
 NEWMAN_EXIT_CODE=$?
 
 # Bring down Docker containers after tests
-docker compose down -v
+cd ../../services/Player
+docker compose down
 
 # Return the same response code as Newman
 exit $NEWMAN_EXIT_CODE

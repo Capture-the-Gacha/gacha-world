@@ -36,5 +36,5 @@ jobs:
       
       - name: Run tests
         run: |
-          cd services/Auth
-          ./test.sh
+          cd docs/tests
+          ./auth_unit_test.sh
