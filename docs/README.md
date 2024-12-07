@@ -14,9 +14,7 @@
   - [2. Gacha Overview](#2-gacha-overview)
     - [2.1 Description](#21-description)
     - [2.2 Rarities and Probabilities](#22-rarities-and-probabilities)
-    - [2.3 Some Examples of Gacha](#23-some-examples-of-gacha)
-      - [Glacior](#glacior)
-      - [Acquashade](#acquashade)
+    - [2.3 Our Gachas](#23-our-gachas)
   - [3. Architecture](#3-architecture)
     - [3.1 Overview](#31-overview)
     - [3.2 Microservices](#32-microservices)
@@ -35,11 +33,14 @@
     - [Integration Testing](#integration-testing)
     - [Performance Testing](#performance-testing)
   - [7. Security – Data](#7-security--data)
+    - [7.1 Input Validation with Pydantic](#71-input-validation-with-pydantic)
     - [7.2 Data Encryption](#72-data-encryption)
   - [8. Security – Authorization and Authentication](#8-security--authorization-and-authentication)
   - [9. Security – Analyses](#9-security--analyses)
     - [Static Analysis](#static-analysis)
+    - [Pip-Audit](#pip-audit)
     - [Docker Image Vulnerabilities](#docker-image-vulnerabilities)
+    - [GitHub Dependabot](#github-dependabot)
   - [10. Additional Features](#10-additional-features)
 
 ---
@@ -73,33 +74,9 @@ The Gachas are categorized into four rarities, each with a specific probability 
 | Epic      | 15%         |
 | Legendary | 5%          |
 
-### 2.3 Some Examples of Gacha
+### 2.3 Our Gachas
 
-#### Glacior
-
-![Glacior](glacior.jpg)
-
-```json
-{
-  "id": "4",
-  "name": "Glacior",
-  "rarity": "Rare",
-  "image": <Image>
-}
-```
-
-#### Acquashade
-
-![Acquashade](acquashade.jpg)
-
-```json
-{
-  "id": "2",
-  "name": "Acquashade",
-  "rarity": "Common",
-  "image": <Image>
-}
-```
+![Gachas](gachas.png)
 
 ---
 
@@ -125,12 +102,11 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 ### 3.3 Interactions and Design Decisions
 
 - **Auth Service** issues JWT tokens upon successful login. Tokens are validated by other services for authentication and authorization.
-- **Auth Service** interacts with the **Player Service** to verify user credentials and manage user sessions.
-- **Player Service** interacts with the **Gacha Service** to add Gachas to player collections after successful rolls.
-- **Gacha Service** communicates with the **Auction Service** to facilitate the transfer of Gachas post-auction.
+- **Auth Service** interacts with the **Player Service** to create new player accounts
+- **Player Service** interacts with the **Gacha Service** to roll a gacha
 - **Auction Service** communicates with the **Player Service** to transfer Gachas and update player balances during auctions.
-- **Auction Service** connects with the **Player Service** to update player balances and Gacha collections based on auction outcomes.
-- **Gateway** routes requests from clients to the appropriate microservices, enhancing security and encapsulation.
+- **Gacha Service** interacts with the **Player Service** to ensure consistency when a gacha is deleted.
+- **Gateway** routes requests from clients to the appropriate microservices
 - **Admin Gateway** interacts with both **Auth Service** and **Gacha Service** to manage administrative tasks securely.
 
 ---
@@ -143,7 +119,7 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 
 • **AS A** player, **I WANT TO** create my game account/profile **SO THAT** I can participate in the game
     - **Endpoint:** `POST /register`
-    - **Microservices:** Gateway, Auth Service, Auth DB
+    - **Microservices:** Gateway, Auth Service, Auth DB, Player Service, Player DB
 
 • **AS A** player, **I WANT TO** delete my game account/profile **SO THAT** I can stop participating in the game
     - **Endpoint:** `DELETE /deleteAccount`
@@ -155,7 +131,7 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 
 • **AS A** player, **I WANT TO** login and logout from the system **SO THAT** I can access and leave the game
     - **Endpoints:** `POST /login`, `POST /logout`
-    - **Microservices:** Gateway, Auth Service
+    - **Microservices:** Gateway, Auth Service, Auth DB
 
 • **AS A** player, **I WANT TO** be safe about my account/profile data **SO THAT** nobody can enter my account and steal/modify my info
     - **Endpoints:** *(Handled by authentication and authorization mechanisms)*
@@ -164,58 +140,58 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 ### Collection Management
 
 • **AS A** player, **I WANT TO** see my gacha collection **SO THAT** I know how many gachas I need to complete the collection
-    - **Endpoint:** `GET /gachas`
-    - **Microservices:** Gateway, Gacha Service, Player Service
+    - **Endpoint:** `GET /getCollection`
+    - **Microservices:** Gateway, Player Service, Player DB
 
 • **AS A** player, **I WANT TO** see the info of a gacha in my collection **SO THAT** I can view all the details of one of my gachas
     - **Endpoint:** `GET /gachas/{gacha_id}`
-    - **Microservices:** Gateway, Gacha Service, Player Service
+    - **Microservices:** Gateway, Gacha Service, Gacha DB
 
 • **AS A** player, **I WANT TO** see the system gacha collection **SO THAT** I know what I miss in my collection
     - **Endpoint:** `GET /gachas`
-    - **Microservices:** Gateway, Gacha Service
+    - **Microservices:** Gateway, Gacha Service, Gacha DB
 
 • **AS A** player, **I WANT TO** see the info of a system gacha **SO THAT** I can view the details of a gacha I am missing
     - **Endpoint:** `GET /gachas/{gacha_id}`
-    - **Microservices:** Gateway, Gacha Service
+    - **Microservices:** Gateway, Gacha Service, Gacha DB
 
 • **AS A** player, **I WANT TO** use in-game currency to roll a gacha **SO THAT** I can increase my collection
     - **Endpoint:** `GET /roll`
-    - **Microservices:** Gateway, Gacha Service, Player Service
+    - **Microservices:** Gateway, Gacha Service, Player Service, Gacha DB, Player DB
 
 • **AS A** player, **I WANT TO** be safe about the in-game currency transactions **SO THAT** my in-game currency is not wasted or stolen
-    - **Endpoints:** *(Handled by secure transaction mechanisms)*
+    - **Handled by secure transaction mechanisms**
     - **Microservices:** Gateway, Player Service, Auth Service
 
 ### Market Operations
 
 • **AS A** player, **I WANT TO** see the auction market **SO THAT** I can evaluate if I want to buy/sell a gacha
-    - **Endpoint:** `GET /auctions`
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Endpoint:** `GET /getAuctions`
+    - **Microservices:** Gateway, Auction Service, Auction DB
 
 • **AS A** player, **I WANT TO** set an auction for one of my gachas **SO THAT** I can increase in-game currency
     - **Endpoint:** `POST /sell`
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Microservices:** Gateway, Auction Service, Auction DB, Player Service, Player DB
 
 • **AS A** player, **I WANT TO** bid for a gacha from the market **SO THAT** I can increase my collection
     - **Endpoint:** `POST /bid/{auction_id}/{bid}`
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Microservices:** Gateway, Auction Service, Auction DB, Player Service, Player DB
 
 • **AS A** player, **I WANT TO** view my transaction history **SO THAT** I can track my market movements
-    - **Endpoint:** `GET /transactions`
-    - **Microservices:** Gateway, Player Service
+    - **Endpoint:** `GET /getAuctions`
+    - **Microservices:** Gateway, Auction Service, Auction DB
 
 • **AS A** player, **I WANT TO** receive a gacha when I win an auction **SO THAT** only I have the gacha I bid for
     - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Microservices:** Gateway, Auction Service, Player Service, Auction DB, Player DB
 
 • **AS A** player, **I WANT TO** receive in-game currency when someone wins my auction **SO THAT** the gacha sale works as expected
     - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Microservices:** Gateway, Auction Service, Player Service, Auction DB, Player DB
 
 • **AS A** player, **I WANT TO** receive my in-game currency back when I lose an auction **SO THAT** my in-game currency is only decreased when I buy something
     - **Endpoints:** *(Handled internally by Auction Service and Player Service)*
-    - **Microservices:** Gateway, Auction Service, Player Service
+    - **Microservices:** Gateway, Auction Service, Player Service, Auction DB, Player DB
 
 • **AS A** player, **I WANT TO** ensure that the auctions cannot be tampered with **SO THAT** my in-game currency and collection are safe
     - **Endpoints:** *(Ensured by secure communication and authentication mechanisms across all services)*
@@ -225,39 +201,39 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 
 ### Admin Account Management
 
-• **AS AN** admin, **I WANT TO** register and login as an admin **SO THAT** I can manage the system
-    - **Endpoints:** `POST /registerAdmin`, `POST /login`
-    - **Microservices:** Admin Gateway, Auth Service
+• **AS AN** admin, **I WANT TO** login and logout as an admin **SO THAT** I can manage the system
+    - **Endpoints:** `POST /login`, `POST /logout`
+    - **Microservices:** Admin Gateway, Auth Service, Auth DB
 
 • **AS AN** admin, **I WANT TO** logout when I am done **SO THAT** my admin session is secure
     - **Endpoint:** `POST /logout`
-    - **Microservices:** Admin Gateway, Auth Service
+    - **Microservices:** Admin Gateway, Auth Service, Auth DB
 
 • **AS AN** admin, **I WANT TO** delete my account **SO THAT** I can remove my administrative access
     - **Endpoint:** `DELETE /deleteAccount`
-    - **Microservices:** Admin Gateway, Auth Service
+    - **Microservices:** Admin Gateway, Auth Service, Auth DB
 
 ### Gacha Management
 
 • **AS AN** admin, **I WANT TO** see all gachas **SO THAT** I can monitor the available gacha items
     - **Endpoint:** `GET /gachas`
-    - **Microservices:** Admin Gateway, Gacha Service
+    - **Microservices:** Admin Gateway, Gacha Service, Gacha DB
 
 • **AS AN** admin, **I WANT TO** see a specific gacha by ID **SO THAT** I can view its details
     - **Endpoint:** `GET /gachas/{gacha_id}`
-    - **Microservices:** Admin Gateway, Gacha Service
+    - **Microservices:** Admin Gateway, Gacha Service, Gacha DB
 
 • **AS AN** admin, **I WANT TO** publish a new gacha **SO THAT** I can add new items to the system
     - **Endpoint:** `POST /gachas`
-    - **Microservices:** Admin Gateway, Gacha Service
+    - **Microservices:** Admin Gateway, Gacha Service, Gacha DB
 
 • **AS AN** admin, **I WANT TO** modify a gacha with a specific ID **SO THAT** I can update its details
     - **Endpoint:** `PUT /gachas/{gacha_id}`
-    - **Microservices:** Admin Gateway, Gacha Service
+    - **Microservices:** Admin Gateway, Gacha Service, Gacha DB
 
 • **AS AN** admin, **I WANT TO** delete a gacha **SO THAT** I can remove items from the system
     - **Endpoint:** `DELETE /gachas/{gacha_id}`
-    - **Microservices:** Admin Gateway, Gacha Service
+    - **Microservices:** Admin Gateway, Gacha Service, Gacha DB, Player Service, Player DB
 
 ---
 
@@ -321,19 +297,24 @@ We conducted comprehensive testing to ensure the reliability, performance, and s
 - **Tools Used**: Locust
 
 - **Implementation**:
-  - Developed Locust scripts targeting the API Gateway, specifically focusing on all player endpoints related to gacha operations.
-  - Conducted high-volume request simulations to ensure that the rarity distribution of gacha rolls remains consistent and accurate under load.
+We ran performance tests with Locust against the player endpoints that handle gacha operations. By hitting these endpoints with a large number of requests, we confirmed that the rarity distribution of gacha rolls stayed within the expected ranges and that the endpoints performed well.
+Access to player features requires authentication, so we had to secure every request with a valid JSON Web Token (JWT). To get the token, we used the /login endpoint and provided a username and password.
 
-esecuzione di bandit con `docker-compose --profile security up bandit` o `docker-compose run bandit`
+![Locust Chart](locust_charts.png)
+
+Our tests focused on the /roll endpoint, verifying that the rarities matched the distribution described in Section 2.2.
+Overall, the system proved both efficient and scalable, easily handling a large number of concurrent requests. After an initial spike, the system maintained a steady rate of requests per second, represented by the green line. No failures occurred during the test, which would have shown up as a red line if they had happened. When stopping the test, the test also logs the distribution of the the rarities.
+![Locust Logs](locus_logs.png)
 
 ---
 
 ## 7. Security – Data
 
-- **Username Validation**:
-  - **Microservices**: Auth Service
-  - **Description**: Usernames are validated to ensure they are at least 3 characters long, start with a letter, and contain only alphanumeric characters or underscores.
-  - **Implementation**: Input validation functions check usernames during registration and account updates to prevent injection attacks and invalid entries.
+### 7.1 Input Validation with Pydantic
+
+- **Microservices**: Auth Service
+- **Description**: User inputs are validated using Pydantic models, which enforce data types and constraints, eliminating the need for manual input sanitization.
+- **Implementation**: Pydantic models automatically validate input data during request processing, ensuring that all inputs adhere to required formats and preventing invalid or malicious data entries.
 
 ### 7.2 Data Encryption
 
@@ -347,15 +328,7 @@ esecuzione di bandit con `docker-compose --profile security up bandit` o `docker
 
 ## 8. Security – Authorization and Authentication
 
-We implemented a **Centralized Authentication** scenario:
-
-- **Token Validation Steps**:
-  1. User logs in via the Auth Service and receives a JWT token.
-  2. Other microservices validate the token by checking its signature using the public key.
-
-- **Key Management**:
-  - **Private Key**: Stored securely in the Auth Service to sign tokens.
-  - **Public Key**: Distributed to other microservices for token verification.
+The system uses a distributed approach for authorization and authentication. Instead of having a single microservice dedicated to these tasks, all microservices are able to decode JWT tokens. When a user logs in, they get a JWT token that must be included in the Authorization header for any future requests to the Gachana application. Each endpoint validate the token by checking its signature using the public key to determine the user’s identity and role (player or admin). Tokens aren’t stored in the database; they are simply sent along with each request.
 
 - **Access Token Payload Format**:
 
@@ -380,16 +353,25 @@ We implemented a **Centralized Authentication** scenario:
 ### Static Analysis
 
 - **Tool Used**: Bandit
-- **Command Used**: `bandit -r ./services`
-- **Results**: Identified and resolved potential security issues in the codebase.
+- **Command Used**: `docker-compose run bandit`
+- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `bandit` recursively on all services. It identifies various static vulnerabilities and provides suggestions on how to resolve them.
+
+### Pip-Audit
+
+- **Tool Used**: pip-audit
+- **Command Used**: `docker-compose run pip-audit`
+- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `pip-audit` recursively on all services. It identifies outdated or vulnerable Python packages and reports potential security issues, along with guidance on how to address them.
 
 ### Docker Image Vulnerabilities
 
 - **Tool Used**: Docker Scout
-- **Repository**: `ghcr.io/username/gacha-world`
-- **Results**: Scanned custom Docker images for vulnerabilities. Our images showed no critical vulnerabilities.
+- **Repository**: ![lorebando/gacha-world](https://hub.docker.com/repository/docker/lorebando/gacha-world/general)
+- **Results**: Docker Scout was used to scan the Docker images associated with the project. It detects vulnerabilities in base images, identifies outdated dependencies, and provides actionable steps to resolve these issues by suggesting safer versions or alternative images.
 
-*Note*: Docker Scout was not used for third-party images.
+### GitHub Dependabot
+
+- **Tool Used**: GitHub Dependabot
+- **Results**: Dependabot was enabled in the GitHub repository to monitor dependencies in requirements.txt, Dockerfile, and other dependency files. It automatically raises pull requests for outdated or vulnerable dependencies, making it easy to review and update them.
 
 ---
 
