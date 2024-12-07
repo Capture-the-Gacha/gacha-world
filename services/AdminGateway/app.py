@@ -27,7 +27,7 @@ async def forward(request: Request, url: str):
             content=await request.body(),
             headers=request.headers
         )
-    return Response(content=response.content, status_code=response.status_code)
+    return Response(content=response.content, status_code=response.status_code, headers=response.headers)
 
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
@@ -78,6 +78,10 @@ async def updateGacha(request: Request, token: TokenDep, gacha_id: int):
 @app.delete('/gachas/{gacha_id}')
 async def deleteGacha(request: Request, token: TokenDep, gacha_id: int):
     return await forward(request, f'https://{GACHA_HOST}:{PORT}/gachas/{gacha_id}')
+
+@app.get('/images/{gacha_name}')
+async def get_image(request: Request, token: TokenDep, gacha_name: str) -> dict:
+    return await forward(request, f'https://{GACHA_HOST}:{PORT}/images/{gacha_name}')
 
 if __name__ == "__main__":
     uvicorn.run(
