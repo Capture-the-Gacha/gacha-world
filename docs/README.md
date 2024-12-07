@@ -290,9 +290,9 @@ We conducted comprehensive testing to ensure the reliability, performance, and s
 
 - **Implementation**:
   - Newman executes integration tests defined in a shared Postman collection.
-  - The integration-test job in our workflow runs all microservices together using Docker Compose.
+  - The integration-test job in our workflow runs all microservices together using the Docker Compose file in the project root.
 
-The README.md file in the project root contains instructions on how to run both Unit and Integration tests manually.
+The README.md file in the project root contains instructions on how to run both Unit and Integration tests.
 
 ### Performance Testing
 
@@ -307,7 +307,7 @@ Access to player features requires authentication, so we had to secure every req
 ![Locust Chart](locust_charts.png)
 
 Our tests focused on the /roll endpoint, verifying that the rarities matched the distribution described in Section 2.2.
-Overall, the system proved both efficient and scalable, easily handling a large number of concurrent requests. After an initial spike, the system maintained a steady rate of requests per second, represented by the green line. No failures occurred during the test, which would have shown up as a red line if they had happened. When stopping the test, the test also logs the distribution of the the rarities.
+Overall, the system proved both efficient and scalable, easily handling a large number of concurrent requests. After an initial spike, the system maintained a steady rate of requests per second, represented by the green line. No failures occurred during the test, which would have shown up as a red line if they had happened. When stopping the test, the distribution of the the rarities get displayed in the logs.
 ![Locust Logs](locus_logs.png)
 
 ---
