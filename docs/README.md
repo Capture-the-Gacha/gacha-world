@@ -20,7 +20,6 @@
     - [3.2 Microservices](#32-microservices)
     - [3.3 Interactions and Design Decisions](#33-interactions-and-design-decisions)
   - [4. User Stories](#4-user-stories)
-  - [4.1 User Stories for External Users](#41-user-stories-for-external-users)
     - [Account Management](#account-management)
     - [Collection Management](#collection-management)
     - [Market Operations](#market-operations)
@@ -111,8 +110,6 @@ Our system is designed using a microservices architecture, orchestrated with Doc
 ---
 
 ## 4. User Stories
-
-## 4.1 User Stories for External Users
 
 ### Account Management
 
@@ -358,7 +355,7 @@ The system uses a distributed approach for authorization and authentication. Ins
 
 - **Tool Used**: Bandit
 - **Command Used**: `docker-compose run bandit`
-- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `bandit` recursively on all services. As you can see, it shows 13 high-severity issues and 6 medium-severity issues. However, they only relate to the use of self-signed certificates and the binding of the services to all certificates, mitigated by the docker compose network.
+- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `bandit` recursively on all services. As you can see, it shows 13 high-severity issues and 6 medium-severity issues. However, they only relate to the use of self-signed certificates and the binding of the services to all interfaces, which is not a problem since they're running under the docker compose network.
 
 ![Bandit Results](bandit_results.png)
 
