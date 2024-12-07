@@ -1,0 +1,40 @@
+name: Player Unit Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/player.yml'
+      - 'services/Player/**'
+      - 'docs/tests/collections/PlayerTesting.postman_collection.json'
+      - 'docs/tests/collections/environment.postman_globals.json'
+      - 'docker-compose.yml'
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:  
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Init repository
+        run: ./init.sh
+
+      - name: Rename .env.example
+        run: mv .env.example .env
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Newman
+        run: npm install -g newman
+        
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Run tests
+        run: |
+          cd docs/tests
+          ./player_unit_test.sh

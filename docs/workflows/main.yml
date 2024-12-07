@@ -1,0 +1,49 @@
+name: Integration Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/main.yml'
+      - 'docs/tests/**'
+      - 'services/**'
+      - 'docker-compose.yml'
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Init repository
+        run: ./init.sh
+
+      - name: Rename .env.example
+        run: mv .env.example .env
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install Newman
+        run: npm install -g newman
+        
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Auth tests
+        run: |
+          cd docs/tests
+          ./auth_integration_test.sh
+
+      - name: Run Player tests
+        run: |
+          cd docs/tests
+          ./player_integration_test.sh
+
+      - name: Run Auction tests
+        run: |
+          cd docs/tests
+          ./auction_integration_test.sh
