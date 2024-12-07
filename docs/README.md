@@ -369,7 +369,7 @@ The system uses a distributed approach for authorization and authentication. Ins
 - **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `pip-audit` recursively on all services. It identifies outdated or vulnerable Python packages and reports potential security issues, along with guidance on how to address them.
 - **Results**: The scan of each service did not uncover any vulnerabilities.
 
-![Pip-Audit Results](pip_audit_results.png)
+![Pip-Audit Results](pip-audit_results.png)
 
 ### Docker Image Vulnerabilities
 
