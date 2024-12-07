@@ -5,6 +5,7 @@ from fastapi.responses import Response
 from fastapi.security import APIKeyHeader
 import httpx
 from typing import Annotated
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -41,12 +42,16 @@ TokenDep = Annotated[str, Depends(verify_token)]
 
 # === Auth ===
 
+class UserCredentials(BaseModel):
+    username: str
+    password: str
+
 @app.post('/registerAdmin')
-async def registerAdmin(request: Request):
+async def registerAdmin(credentials: UserCredentials, request: Request):
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/registerAdmin')
 
 @app.post('/login')
-async def login(request: Request):
+async def login(credentials: UserCredentials, request: Request):
     return await forward(request, f'https://{AUTH_HOST}:{PORT}/login')
 
 @app.post('/logout')
