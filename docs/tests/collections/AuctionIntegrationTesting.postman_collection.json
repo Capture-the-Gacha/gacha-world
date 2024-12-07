@@ -908,7 +908,7 @@
 						}
 					]
 				},
-				"method": "POST",
+				"method": "GET",
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/getAuctions",
@@ -1126,7 +1126,7 @@
 						}
 					]
 				},
-				"method": "POST",
+				"method": "GET",
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/getAuctions",
