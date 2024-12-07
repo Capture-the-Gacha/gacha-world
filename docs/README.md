@@ -374,8 +374,10 @@ The system uses a distributed approach for authorization and authentication. Ins
 ### Docker Image Vulnerabilities
 
 - **Tool Used**: Docker Scout
-- **Repository**: ![lorebando/gacha-world](https://hub.docker.com/repository/docker/lorebando/gacha-world/general)
-- **Results**: Docker Scout was used to scan the Docker images associated with the project. It detects vulnerabilities in base images, identifies outdated dependencies, and provides actionable steps to resolve these issues by suggesting safer versions or alternative images.
+- **Repository**: [lorebando/gacha-world](https://hub.docker.com/repository/docker/lorebando/gacha-world/general)
+- **Results**: Docker Scout was used to scan the Docker images associated with the project. It detects vulnerabilities in base images, identifies outdated dependencies, and provides actionable steps to resolve these issues by suggesting safer versions or alternative images. No image analyzed by Docker Scout has now either high or critical vulnerabilities.
+
+![Docker Scout Results](docker_scout_results.png)
 
 ### GitHub Dependabot
 
