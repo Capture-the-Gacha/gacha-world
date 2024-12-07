@@ -81,6 +81,10 @@ async def sell(auction: AuctionPublic, request: Request, token: TokenDep) -> dic
 async def bid(auction_id: str, bid: str, request: Request, token: TokenDep) -> dict:
     return await forward(request, f'https://{AUCTION_HOST}:{PORT}/bid/{auction_id}/{bid}')
 
+@app.get('/getAuctions')
+async def getAuctions(request: Request, token: TokenDep) -> List[Auction]:
+    return await forward(request, f'https://{AUCTION_HOST}:{PORT}/getAuctions')
+
 # ===== Gacha =====
 
 @app.get('/gachas')
