@@ -22,6 +22,11 @@ Create self-signed certificates + private and public key for JWT:
 docker compose up -d --build
 ```
 
+### Access the endpoints
+
+- Main Features: Navigate to https://localhost:5000/docs to explore and interact with the API documentation for the application's main features.
+- Admin Features: Access the admin-specific functionalities at https://localhost:5001/docs.
+
 ## Testing
 
 ### Unit Tests
