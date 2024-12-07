@@ -95,6 +95,10 @@ async def get_gachas(request: Request, token: TokenDep) -> dict:
 async def get_gacha(request: Request, token: TokenDep, gacha_id: int) -> dict:
     return await forward(request, f'https://{GACHA_HOST}:{PORT}/gachas/{gacha_id}')
 
+@app.get('/images/{gacha_name}')
+async def get_image(request: Request, token: TokenDep, gacha_name: str) -> dict:
+    return await forward(request, f'https://{GACHA_HOST}:{PORT}/images/{gacha_name}')
+
 # ===== Auth =====
 
 @app.post('/register')
