@@ -7,6 +7,8 @@ from typing import Annotated, Union
 
 import jwt
 import uvicorn
+import httpx
+import urllib3
 from connection import engine
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
@@ -15,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from model import Gacha, SessionDep, create_db_and_tables, get_session
 from PIL import Image
 from sqlmodel import Session, select
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ENV = os.getenv('ENV', 'prod')
 MOCK_ID = 1
@@ -28,6 +31,9 @@ else:
 CERT_PATH = os.getenv('CERT_PATH')
 KEY_PATH = os.getenv('KEY_PATH')
 JWT_PUBLIC_KEY_PATH = os.getenv('JWT_PUBLIC_KEY_PATH')
+PLAYER_HOST = os.getenv('PLAYER_HOST')
+PORT = int( os.getenv('PORT') )
+TIMEOUT = int( os.getenv('TIMEOUT', 10) )
 
 with open(JWT_PUBLIC_KEY_PATH, 'r') as f:
     JWT_PUBLIC_KEY = f.read().strip()
@@ -130,6 +136,12 @@ async def delete_gacha(gacha_id: int, token: TokenDep, session: SessionDep):
     gacha = session.get(Gacha, gacha_id)
     if not gacha:
         raise HTTPException(status_code=404, detail='Gacha not found')
+    
+    # Delete all gachas from users collections
+    response = httpx.delete(f'https://{PLAYER_HOST}:{PORT}/deleteGacha/{gacha_id}', verify=False, timeout=TIMEOUT)
+    if not response.is_success:
+        raise HTTPException(status_code=400, detail='Error deleting gacha from users collections')
+
     session.delete(gacha)
     session.commit()
     return {'message': 'Gacha deleted successfully'}

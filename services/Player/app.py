@@ -264,6 +264,19 @@ async def delete_account(username: str, session: SessionDep) -> None:
 	session.delete(player)
 	session.commit()
 
+# =================
+# === GACHA API ===
+# =================
+
+@app.delete('/deleteGacha/{gacha_id}', status_code=204)
+async def delete_gacha(gacha_id: int, session: SessionDep) -> None:
+	query = select(Collection).where(Collection.gacha_id == gacha_id)
+	entries = session.exec(query).all()
+	for entry in entries:
+		session.delete(entry)
+	session.commit()
+
+
 
 if __name__ == '__main__':
     import uvicorn
