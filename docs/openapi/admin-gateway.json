@@ -86,33 +86,51 @@
     },
     "/gachas": {
       "get": {
-        "summary": "Getcollection",
-        "operationId": "getCollection_gachas_get",
+        "summary": "Get Gachas",
+        "operationId": "get_gachas_gachas_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": { "application/json": { "schema": {} } }
           }
         },
-        "security": [{ "APIKeyHeader": [] }]
+        "security": [{ "OAuth2PasswordBearer": [] }]
       },
       "post": {
-        "summary": "Addgacha",
-        "operationId": "addGacha_gachas_post",
+        "summary": "Add Gacha",
+        "operationId": "add_gacha_gachas_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_gacha_gachas_post"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
           }
         },
-        "security": [{ "APIKeyHeader": [] }]
+        "security": [{ "OAuth2PasswordBearer": [] }]
       }
     },
     "/gachas/{gacha_id}": {
       "get": {
-        "summary": "Getcollection",
-        "operationId": "getCollection_gachas__gacha_id__get",
-        "security": [{ "APIKeyHeader": [] }],
+        "summary": "Get Gacha",
+        "operationId": "get_gacha_gachas__gacha_id__get",
+        "security": [{ "OAuth2PasswordBearer": [] }],
         "parameters": [
           {
             "name": "gacha_id",
@@ -137,9 +155,9 @@
         }
       },
       "put": {
-        "summary": "Updategacha",
-        "operationId": "updateGacha_gachas__gacha_id__put",
-        "security": [{ "APIKeyHeader": [] }],
+        "summary": "Update Gacha",
+        "operationId": "update_gacha_gachas__gacha_id__put",
+        "security": [{ "OAuth2PasswordBearer": [] }],
         "parameters": [
           {
             "name": "gacha_id",
@@ -148,6 +166,15 @@
             "schema": { "type": "integer", "title": "Gacha Id" }
           }
         ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_update_gacha_gachas__gacha_id__put"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -164,9 +191,9 @@
         }
       },
       "delete": {
-        "summary": "Deletegacha",
-        "operationId": "deleteGacha_gachas__gacha_id__delete",
-        "security": [{ "APIKeyHeader": [] }],
+        "summary": "Delete Gacha",
+        "operationId": "delete_gacha_gachas__gacha_id__delete",
+        "security": [{ "OAuth2PasswordBearer": [] }],
         "parameters": [
           {
             "name": "gacha_id",
@@ -230,6 +257,37 @@
   },
   "components": {
     "schemas": {
+      "Body_add_gacha_gachas_post": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "rarity": { "type": "string", "title": "Rarity" },
+          "image": { "type": "string", "format": "binary", "title": "Image" }
+        },
+        "type": "object",
+        "required": ["name", "rarity", "image"],
+        "title": "Body_add_gacha_gachas_post"
+      },
+      "Body_update_gacha_gachas__gacha_id__put": {
+        "properties": {
+          "image": {
+            "anyOf": [
+              { "type": "string", "format": "binary" },
+              { "type": "null" }
+            ],
+            "title": "Image"
+          },
+          "name": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Name"
+          },
+          "rarity": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Rarity"
+          }
+        },
+        "type": "object",
+        "title": "Body_update_gacha_gachas__gacha_id__put"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
