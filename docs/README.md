@@ -41,7 +41,6 @@
     - [Pip-Audit](#pip-audit)
     - [Docker Image Vulnerabilities](#docker-image-vulnerabilities)
     - [GitHub Dependabot](#github-dependabot)
-  - [10. Additional Features](#10-additional-features)
 
 ---
 
@@ -270,6 +269,8 @@ Our marketplace operates under the following rules to ensure fair and secure tra
 
 We conducted comprehensive testing to ensure the reliability, performance, and security of our services:
 
+**GitHub Actions Workflow:** both Unit Tests and Integration Tests are executed in dedicated jobs in the CI/CD pipeline. They can be viewed in the docs/workflows folder.
+
 ### Unit Testing
 
 - **Description**: Unit tests were developed for all microservice endpoints involving player operations. Each endpoint has at least one test for correct input (expecting a `200 OK` response) and one for incorrect input (expecting an error response).
@@ -277,8 +278,9 @@ We conducted comprehensive testing to ensure the reliability, performance, and s
 - **Tools Used**: Postman
 
 - **Implementation**:
-  - Created Postman collections such as `PlayerTesting.postman_collection.json` and `AuthTesting.postman_collection.json` to cover all player-related endpoints.
+  - Created Postman collections to cover all player-related endpoints.
   - Each endpoint within these collections includes tests for both valid and invalid inputs to ensure proper handling and response codes.
+  - To test the services in isolation, each of them has an individual docker-compose.yml file, which also creates the associated database.
 
 ### Integration Testing
 
@@ -287,8 +289,10 @@ We conducted comprehensive testing to ensure the reliability, performance, and s
 - **Tools Used**: Postman
 
 - **Implementation**:
-  - Utilized collections like `PlayerIntegrationTesting.postman_collection.json` and `AuctionTesting.postman_collection.json` to conduct integration tests.
-  - Ensured that requests routed through the gateway correctly interact with the respective microservices, maintaining data integrity and consistent responses.
+  - Newman executes integration tests defined in a shared Postman collection.
+  - The integration-test job in our workflow runs all microservices together using Docker Compose.
+
+The README.md file in the project root contains instructions on how to run both Unit and Integration tests manually.
 
 ### Performance Testing
 
@@ -354,13 +358,18 @@ The system uses a distributed approach for authorization and authentication. Ins
 
 - **Tool Used**: Bandit
 - **Command Used**: `docker-compose run bandit`
-- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `bandit` recursively on all services. It identifies various static vulnerabilities and provides suggestions on how to resolve them.
+- **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `bandit` recursively on all services. As you can see, it shows 13 high-severity issues and 6 medium-severity issues. However, they only relate to the use of self-signed certificates and the binding of the services to all certificates, mitigated by the docker compose network.
+
+![Bandit Results](bandit_results.png)
 
 ### Pip-Audit
 
 - **Tool Used**: pip-audit
 - **Command Used**: `docker-compose run pip-audit`
 - **Implementation**: Created a service in the `docker-compose` file under the `security` profile, which uses a Python 3.9 image and runs `pip-audit` recursively on all services. It identifies outdated or vulnerable Python packages and reports potential security issues, along with guidance on how to address them.
+- **Results**: The scan of each service did not uncover any vulnerabilities.
+
+![Pip-Audit Results](pip_audit_results.png)
 
 ### Docker Image Vulnerabilities
 
@@ -371,18 +380,6 @@ The system uses a distributed approach for authorization and authentication. Ins
 ### GitHub Dependabot
 
 - **Tool Used**: GitHub Dependabot
-- **Results**: Dependabot was enabled in the GitHub repository to monitor dependencies in requirements.txt, Dockerfile, and other dependency files. It automatically raises pull requests for outdated or vulnerable dependencies, making it easy to review and update them.
-
----
-
-## 10. Additional Features
-
-- **Automatic Auction Expiration Handling**:
-  - **Description**: The system automatically handles auction expirations, closing auctions and processing settlements without manual intervention.
-  - **Implementation**: Implemented scheduled tasks in the **Auction Service** to periodically check for expired auctions and execute the necessary operations.
-
-- **Admin Gateway**:
-  - **Description**: A dedicated gateway for administrative functions, separating admin operations from regular user activities.
-  - **Implementation**: The **Admin Gateway** routes admin-specific requests to the appropriate services and enforces authentication and authorization policies for admin users.
+- **Results**: Dependabot was enabled in the GitHub repository to monitor dependencies in `requirements.txt`, `Dockerfile`, and other dependency files. It automatically raises pull requests for outdated or vulnerable dependencies, making it easy to review and update them.
 
 ---
