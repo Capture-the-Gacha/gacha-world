@@ -51,6 +51,13 @@ class GachaUser(HttpUser):
     def recharge(self):
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
         self.client.post(f"/recharge/{self.id}/{1_000_000}", headers=headers, verify=False)
+
+    @task()
+    def gachas(self):
+        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        self.client.get(f"/gachas", headers=headers, verify=False)
+
+    
                     
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
