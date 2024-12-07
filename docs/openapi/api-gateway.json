@@ -1,0 +1,616 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "FastAPI", "version": "0.1.0" },
+  "paths": {
+    "/getCollection": {
+      "get": {
+        "summary": "Getcollection",
+        "operationId": "getCollection_getCollection_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/CollectionPublic" },
+                  "type": "array",
+                  "title": "Response Getcollection Getcollection Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/recharge/{player_id}/{amount}": {
+      "post": {
+        "summary": "Recharge",
+        "operationId": "recharge_recharge__player_id___amount__post",
+        "parameters": [
+          {
+            "name": "player_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Player Id" }
+          },
+          {
+            "name": "amount",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Amount" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Recharge Recharge  Player Id   Amount  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getBalance": {
+      "get": {
+        "summary": "Getbalance",
+        "operationId": "getBalance_getBalance_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Getbalance Getbalance Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/getRecharges": {
+      "get": {
+        "summary": "Getrecharges",
+        "operationId": "getRecharges_getRecharges_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/RechargePublic" },
+                  "type": "array",
+                  "title": "Response Getrecharges Getrecharges Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/roll": {
+      "get": {
+        "summary": "Roll",
+        "operationId": "roll_roll_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Roll Roll Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/getRolls": {
+      "get": {
+        "summary": "Getrolls",
+        "operationId": "getRolls_getRolls_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/RollPublic" },
+                  "type": "array",
+                  "title": "Response Getrolls Getrolls Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/sell": {
+      "post": {
+        "summary": "Sell",
+        "operationId": "sell_sell_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuctionPublic" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Sell Sell Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/bid/{auction_id}/{bid}": {
+      "post": {
+        "summary": "Bid",
+        "operationId": "bid_bid__auction_id___bid__post",
+        "security": [{ "APIKeyHeader": [] }],
+        "parameters": [
+          {
+            "name": "auction_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Auction Id" }
+          },
+          {
+            "name": "bid",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Bid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Bid Bid  Auction Id   Bid  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getAuctions": {
+      "get": {
+        "summary": "Getauctions",
+        "operationId": "getAuctions_getAuctions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/Auction" },
+                  "type": "array",
+                  "title": "Response Getauctions Getauctions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/gachas": {
+      "get": {
+        "summary": "Get Gachas",
+        "operationId": "get_gachas_gachas_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Gachas Gachas Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/gachas/{gacha_id}": {
+      "get": {
+        "summary": "Get Gacha",
+        "operationId": "get_gacha_gachas__gacha_id__get",
+        "security": [{ "APIKeyHeader": [] }],
+        "parameters": [
+          {
+            "name": "gacha_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Gacha Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Gacha Gachas  Gacha Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/images/{gacha_name}": {
+      "get": {
+        "summary": "Get Image",
+        "operationId": "get_image_images__gacha_name__get",
+        "security": [{ "APIKeyHeader": [] }],
+        "parameters": [
+          {
+            "name": "gacha_name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Gacha Name" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Image Images  Gacha Name  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Register",
+        "operationId": "register_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserCredentials" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Register Register Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserCredentials" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Login Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Logout",
+        "operationId": "logout_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Logout Logout Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/editAccount": {
+      "patch": {
+        "summary": "Editaccount",
+        "operationId": "editAccount_editAccount_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchUser" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Editaccount Editaccount Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    },
+    "/deleteAccount": {
+      "delete": {
+        "summary": "Deleteaccount",
+        "operationId": "deleteAccount_deleteAccount_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Deleteaccount Deleteaccount Delete"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "APIKeyHeader": [] }]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Auction": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "creator_id": { "type": "integer", "title": "Creator Id" },
+          "last_bidder_id": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Last Bidder Id"
+          },
+          "gacha_id": { "type": "integer", "title": "Gacha Id" },
+          "base_price": { "type": "number", "title": "Base Price" },
+          "highest_bid": {
+            "type": "number",
+            "title": "Highest Bid",
+            "default": 0
+          },
+          "expiration_timestamp": {
+            "type": "integer",
+            "title": "Expiration Timestamp"
+          },
+          "is_closed": {
+            "type": "boolean",
+            "title": "Is Closed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "creator_id",
+          "gacha_id",
+          "base_price",
+          "expiration_timestamp"
+        ],
+        "title": "Auction"
+      },
+      "AuctionPublic": {
+        "properties": {
+          "gacha_id": { "type": "integer", "title": "Gacha Id" },
+          "base_price": { "type": "number", "title": "Base Price" },
+          "expiration_timestamp": {
+            "type": "integer",
+            "title": "Expiration Timestamp"
+          }
+        },
+        "type": "object",
+        "required": ["gacha_id", "base_price", "expiration_timestamp"],
+        "title": "AuctionPublic"
+      },
+      "CollectionPublic": {
+        "properties": {
+          "gacha_id": { "type": "integer", "title": "Gacha Id" },
+          "quantity": { "type": "integer", "title": "Quantity" }
+        },
+        "type": "object",
+        "required": ["gacha_id", "quantity"],
+        "title": "CollectionPublic"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PatchUser": {
+        "properties": {
+          "username": { "type": "string", "title": "Username" },
+          "password": { "type": "string", "title": "Password" }
+        },
+        "type": "object",
+        "title": "PatchUser"
+      },
+      "RechargePublic": {
+        "properties": {
+          "amount": { "type": "number", "title": "Amount" },
+          "timestamp": { "type": "integer", "title": "Timestamp" }
+        },
+        "type": "object",
+        "required": ["amount", "timestamp"],
+        "title": "RechargePublic"
+      },
+      "RollPublic": {
+        "properties": {
+          "gacha_id": { "type": "integer", "title": "Gacha Id" },
+          "paid_price": { "type": "number", "title": "Paid Price" },
+          "timestamp": { "type": "integer", "title": "Timestamp" }
+        },
+        "type": "object",
+        "required": ["gacha_id", "paid_price", "timestamp"],
+        "title": "RollPublic"
+      },
+      "UserCredentials": {
+        "properties": {
+          "username": { "type": "string", "title": "Username" },
+          "password": { "type": "string", "title": "Password" }
+        },
+        "type": "object",
+        "required": ["username", "password"],
+        "title": "UserCredentials"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  }
+}
