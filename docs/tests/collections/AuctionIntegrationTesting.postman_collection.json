@@ -877,6 +877,52 @@
 			"response": []
 		},
 		{
+			"name": "check_auctions2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"I am involved in 1 auction\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(1);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getAuctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getAuctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "get_balance2",
 			"event": [
 				{
@@ -1043,6 +1089,52 @@
 						"bid",
 						"1",
 						"200"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_auctions2_empty",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"I am involved in 0 auctions\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(0);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/getAuctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"getAuctions"
 					]
 				}
 			},
